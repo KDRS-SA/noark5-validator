@@ -1,0 +1,7 @@
+{
+  "name" : "validator-noark5",
+  "repositories" : [ {
+    "type" : "composer",
+    "url" : "https://packagist.org/"
+  } ]
+}

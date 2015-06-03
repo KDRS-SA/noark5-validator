@@ -1,0 +1,9 @@
+
+*.tmp
+*.bak
+*.swp
+*~.nib
+*.log
+.settings/*.*
+.buildpath
+.project
