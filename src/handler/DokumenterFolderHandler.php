@@ -58,7 +58,5 @@ class DokumenterFolderHandler {
         }
         closedir($directoryHandle);
     }
-
 }
-
 ?>

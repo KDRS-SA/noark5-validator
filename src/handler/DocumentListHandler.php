@@ -23,7 +23,6 @@ class DocumentListHandler
             $this->fileList[$fileToAdd] = 1;
         }
         else {
-            print 'Duplicate file detected while processing files ' . $fileToAdd;
             $this->fileList[$fileToAdd]++;
             $this->fileListDuplicates[$fileToAdd] = 1;
             $this->errorsFound = true;
@@ -43,14 +42,11 @@ class DocumentListHandler
             $this->errorsFound = true;
             if (isset($this->fileListNotReferenced[$fileToRemove]) == true) {
                 $this->fileListNotReferenced[$fileToRemove]++;
-//                print 'Attempt number (' . $this->fileListNotReferenced[$fileToRemove]++ . ') to remove a file that is not referenced. Filename is (' . $fileToRemove . ')' . PHP_EOL;
             }
             else {
                 $this->fileListNotReferenced[$fileToRemove] = 1;
-  //              print 'Attempt to remove a file that is not referenced. Filename is (' . $fileToRemove . ')' . PHP_EOL;
             }
         }
-
     }
 
     public function getRemaining() {

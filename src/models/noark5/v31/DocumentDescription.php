@@ -1,91 +1,208 @@
 <?php
-
 use Doctrine\Common\Collections\ArrayCollection;
 require_once ('models/noark5/v31/DocumentObject.php');
 require_once ('models/noark5/v31/Author.php');
 
 /**
  * @Entity @Table(name="document_description")
- **/
+ */
 class DocumentDescription
 {
-    /** @Id @Column(type="bigint", name="pk_document_description_id", nullable=false) @GeneratedValue **/
+
+    /**
+     * @Id @Column(type="bigint", name="pk_document_description_id", nullable=false) @GeneratedValue *
+     */
     protected $id;
 
-    /** M001 - systemID (xs:string) */
-    /** @Column(type="string", name = "system_id", nullable=true) **/
+    /**
+     * M001 - systemID (xs:string)
+     */
+    /**
+     * @Column(type="string", name = "system_id", nullable=true) *
+     */
     protected $systemId;
 
-    /** M083 - dokumenttype (xs:string) */
-    /** @Column(type="string", name = "document_type", nullable=true) **/
+    /**
+     * M083 - dokumenttype (xs:string)
+     */
+    /**
+     * @Column(type="string", name = "document_type", nullable=true) *
+     */
     protected $documentType;
 
-    /** M054 - dokumentstatus (xs:string) */
-    /** @Column(type="string", name = "document_status", nullable=true) **/
+    /**
+     * M054 - dokumentstatus (xs:string)
+     */
+    /**
+     * @Column(type="string", name = "document_status", nullable=true) *
+     */
     protected $documentStatus;
 
-    /** M020 - tittel (xs:string) */
-    /** @Column(type="string", name = "title", nullable=true) **/
+    /**
+     * M020 - tittel (xs:string)
+     */
+    /**
+     * @Column(type="string", name = "title", nullable=true) *
+     */
     protected $title;
 
-    /** M021 - beskrivelse (xs:string) */
-    /** @Column(type="string", name = "description", nullable=true) **/
+    /**
+     * M021 - beskrivelse (xs:string)
+     */
+    /**
+     * @Column(type="string", name = "description", nullable=true) *
+     */
     protected $description;
 
-    /** M600 - opprettetDato (xs:dateTime) */
-    /** @Column(type="datetime", name = "created_date", nullable=true) **/
+    /**
+     * M600 - opprettetDato (xs:dateTime)
+     */
+    /**
+     * @Column(type="datetime", name = "created_date", nullable=true) *
+     */
     protected $createdDate;
 
-    /** M601 - opprettetAv (xs:string) */
-    /** @Column(type="string", name = "created_by", nullable=true) **/
+    /**
+     * M601 - opprettetAv (xs:string)
+     */
+    /**
+     * @Column(type="string", name = "created_by", nullable=true) *
+     */
     protected $createdBy;
 
-    /** M300 - dokumentmedium (xs:string) */
-    /** @Column(type="string", name = "document_medium", nullable=true) **/
+    /**
+     * M300 - dokumentmedium (xs:string)
+     */
+    /**
+     * @Column(type="string", name = "document_medium", nullable=true) *
+     */
     protected $documentMedium;
 
-    /** M217 - tilknyttetRegistreringSom (xs:string) */
-    /** @Column(type="string", name = "associated_with_record_as", nullable=true) **/
+    /**
+     * M217 - tilknyttetRegistreringSom (xs:string)
+     */
+    /**
+     * @Column(type="string", name = "associated_with_record_as", nullable=true) *
+     */
     protected $associatedWithRecordAs;
 
-    /** M007 - dokumentnummer (xs:integer) */
-    /** @Column(type="string", name = "document_number", nullable=true) **/
+    /**
+     * M007 - dokumentnummer (xs:integer)
+     */
+    /**
+     * @Column(type="string", name = "document_number", nullable=true) *
+     */
     protected $documentNumber;
 
-    /** M620 - tilknyttetDato (xs:datetime) */
-    /** @Column(type="datetime", name = "association_date", nullable=true) **/
+    /**
+     * M620 - tilknyttetDato (xs:datetime)
+     */
+    /**
+     * @Column(type="datetime", name = "association_date", nullable=true) *
+     */
     protected $associationDate;
 
-    /** M621 - tilknyttetAv (xs:string) */
-    /** @Column(type="string", name = "associated_by", nullable=true) **/
+    /**
+     * M621 - tilknyttetAv (xs:string)
+     */
+    /**
+     * @Column(type="string", name = "associated_by", nullable=true) *
+     */
     protected $associatedBy;
 
     // Links to Records
-    /** @ManyToMany(targetEntity="Record", mappedBy="referenceDocumentDescription") **/
+    /**
+     * @ManyToMany(targetEntity="Record", mappedBy="referenceDocumentDescription") *
+     */
     protected $referenceRecord;
 
     // Links to DocumentObjects
-    /** @OneToMany(targetEntity="DocumentObject", mappedBy = "referenceDocumentDescription", cascade={"persist", "remove"}) **/
+    /**
+     * @OneToMany(targetEntity="DocumentObject", mappedBy = "referenceDocumentDescription", cascade={"persist", "remove"}) *
+     */
     protected $referenceDocumentObject;
 
     // Links to Authors
     /**
      * @ManyToMany(targetEntity="Author", inversedBy="referenceDocumentDescription", fetch="EXTRA_LAZY", cascade={"persist", "remove"})
-     *       @JoinTable(name="document_description_author",
-     *           joinColumns={@JoinColumn(name="f_pk_document_description_id", referencedColumnName="pk_document_description_id")},
-     *            inverseJoinColumns={@JoinColumn(name="f_pk_author_id", referencedColumnName="pk_author_id")}
-     *      )
-     **/
-     protected $referenceAuthor;
+     * @JoinTable(name="document_description_author",
+     * joinColumns={@JoinColumn(name="f_pk_document_description_id", referencedColumnName="pk_document_description_id")},
+     * inverseJoinColumns={@JoinColumn(name="f_pk_author_id", referencedColumnName="pk_author_id")}
+     * )
+     */
+    protected $referenceAuthor;
 
-    /** @Embedded(class = "Screening") */
-    protected $screening;
+    // Links to StorageLocation
+    /**
+     * @ManyToOne(targetEntity="StorageLocation")
+     * @JoinColumn(name = "document_description_storage_location_id", referencedColumnName = "pk_storage_location_id")
+     */
+    protected $referenceStorageLocation;
+
+    /**
+     * @OneToOne(targetEntity="ElectronicSignature", mappedBy="referenceDocumentDescription")
+     */
+    protected $referenceElectronicSignature;
+
+    // Link to Screening
+    /**
+     * @ManyToOne(targetEntity="Screening", fetch="EXTRA_LAZY")
+     * @JoinColumn(name="class_screening_id",
+     * referencedColumnName="pk_screening_id")
+     */
+    protected $referenceScreening;
+
+    // Link to Classified
+    /**
+     * @ManyToOne(targetEntity="Classified", fetch="EXTRA_LAZY")
+     * @JoinColumn(name="document_description_classified_id",
+     * referencedColumnName="pk_classified_id")
+     */
+    protected $referenceClassified;
+
+    // Link to DisposalUndertaken
+    /**
+     * @ManyToOne(targetEntity="DisposalUndertaken", fetch="EXTRA_LAZY")
+     * @JoinColumn(name="document_description_disposal_undertaken_id",
+     * referencedColumnName="pk_disposal_undertaken_id")
+     */
+    protected $referenceDisposalUndertaken;
+
+    // Link to Disposal
+    /**
+     * @ManyToOne(targetEntity="Disposal", fetch="EXTRA_LAZY")
+     * @JoinColumn(name="document_description_disposal_id",
+     * referencedColumnName="pk_disposal_id")
+     */
+    protected $referenceDisposal;
+
+    // Link to Deletion
+    /**
+     * @ManyToOne(targetEntity="Deletion", fetch="EXTRA_LAZY")
+     * @JoinColumn(name="document_description_deletion_id",
+     * referencedColumnName="pk_deletion_id")
+     */
+    protected $referenceDeletion;
+
+    // Links to Comment
+    /**
+     * @ManyToMany(targetEntity="Comment", fetch="EXTRA_LAZY", cascade={"persist", "remove"})
+     * @JoinTable(name="document_description_comment",
+     * joinColumns=@JoinColumn(
+     * name="f_pk_document_description_id",
+     * referencedColumnName="pk_document_description_id"),
+     * inverseJoinColumns=@JoinColumn(
+     * name="f_pk_comment_id",
+     * referencedColumnName="pk_comment_id"))
+     */
+    protected $referenceComment;
 
     public function __construct()
     {
         $this->referenceAuthor = new ArrayCollection();
-        $this->referenceRecord= new ArrayCollection();
-        $this->referenceDocumentObject= new ArrayCollection();
+        $this->referenceRecord = new ArrayCollection();
+        $this->referenceDocumentObject = new ArrayCollection();
+        $this->referenceComment = new ArrayCollection();
     }
 
     public function getId()
@@ -212,7 +329,7 @@ class DocumentDescription
     public function setAssociationDate($associationDate)
     {
         // have to convert from string object to datetime object
-        $this->associationDate  = DateTime::createFromFormat(Constants::XSD_DATETIME_FORMAT, $associationDate);
+        $this->associationDate = DateTime::createFromFormat(Constants::XSD_DATETIME_FORMAT, $associationDate);
         return $this;
     }
 
@@ -241,6 +358,7 @@ class DocumentDescription
     public function addReferenceRecord($record)
     {
         $this->referenceRecord[] = $record;
+        $record->addReferenceDocumentDescription($this);
         return $this;
     }
 
@@ -261,7 +379,6 @@ class DocumentDescription
         return $this;
     }
 
-
     public function getReferenceAuthor()
     {
         return $this->referenceAuthor;
@@ -279,15 +396,101 @@ class DocumentDescription
         return $this;
     }
 
+    public function getReferenceStorageLocation()
+    {
+        return $this->referenceStorageLocation;
+    }
 
-    public function getScreening()
+    public function setReferenceStorageLocation($referenceStorageLocation)
+    {
+        $this->referenceStorageLocation = $referenceStorageLocation;
+        return $this;
+    }
+
+    public function getReferenceScreening()
     {
         return $this->screening;
     }
 
-    public function setScreening($screening)
+    public function setReferenceScreening($screening)
     {
-        $this->screening = $screening;
+        $this->referenceScreening = $screening;
+        return $this;
+    }
+
+    public function getReferenceElectronicSignature()
+    {
+        return $this->referenceElectronicSignature;
+    }
+
+    public function setReferenceElectronicSignature($referenceElectronicSignature)
+    {
+        $this->referenceElectronicSignature = $referenceElectronicSignature;
+        return $this;
+    }
+
+    public function getReferenceClassified()
+    {
+        return $this->referenceClassified;
+    }
+
+    public function setReferenceClassified($referenceClassified)
+    {
+        $this->referenceClassified = $referenceClassified;
+        return $this;
+    }
+
+    public function getReferenceDisposalUndertaken()
+    {
+        return $this->referenceDisposalUndertaken;
+    }
+
+    public function setReferenceDisposalUndertaken($referenceDisposalUndertaken)
+    {
+        $this->referenceDisposalUndertaken = $referenceDisposalUndertaken;
+        return $this;
+    }
+
+    public function getReferenceDisposal()
+    {
+        return $this->referenceDisposal;
+    }
+
+    public function setReferenceDisposal($referenceDisposal)
+    {
+        $this->referenceDisposal = $referenceDisposal;
+        return $this;
+    }
+
+    public function getReferenceDeletion()
+    {
+        return $this->referenceDeletion;
+    }
+
+    public function setReferenceDeletion($referenceDeletion)
+    {
+        $this->referenceDeletion = $referenceDeletion;
+        return $this;
+    }
+
+    public function getReferenceComment()
+    {
+        return $this->referenceComment;
+    }
+
+    public function setReferenceComment($referenceComment)
+    {
+        $this->referenceComment = $referenceComment;
+        return $this;
+    }
+
+    public function addReferenceComment($comment)
+    {
+        if ($this->referenceComment->contains($comment)) {
+            return;
+        }
+        $this->referenceComment[] = $comment;
+        $comment->addReferenceDocumentDescription($this);
         return $this;
     }
 
@@ -295,7 +498,6 @@ class DocumentDescription
     {
         return __METHOD__ . " id[" . $this->id . "], " . "systemId[" . $this->systemId . "]";
     }
-
 }
 
 ?>

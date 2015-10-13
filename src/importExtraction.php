@@ -13,18 +13,18 @@
 
     $conn = array(
         'driver' => 'pdo_mysql',
-        'user' => '****',
-        'host' => '127.0.0.1',
-        'password' => '****',
+        'user' => 'elarkiv',
+        'host' => 'localhost',
+        'password' => 'elarkiv2015',
         'charset' => 'utf8',
         'driverOptions' => array(1002=>'SET NAMES utf8'),
-        'dbname' => '****'
+        'dbname' => 'n5_validator'
     );
 
     $entityManager = EntityManager::create($conn, $config);
 
     // start
-    $options = getopt("d:t:s:v:");
+    $options = getopt("d:t:s:v:i:");
 
     if (isset($options["d"]) == false) {
         print "Path to directory to test. Example usage -d/home/user/noark5 " . PHP_EOL;
@@ -46,10 +46,24 @@
         exit;
     }
 
+    if (isset($options["l"]) == true && strcasecmp($options["t"], Constants::LOG_CONSOLE) == 0) {
+        $GLOBALS['toolboxLogger'] = 'log2Console';
+    } elseif (isset($options["l"]) == true && strcasecmp($options["t"], Constants::LOG_FILE) == 0) {
+        $GLOBALS['toolboxLogger'] = 'log2file';
+    }elseif (isset($options["l"]) == true && strcasecmp($options["t"], Constants::LOG_BOTH) == 0) {
+        $GLOBALS['toolboxLogger'] = 'log2fileAndConsole';
+    }else {
+        $GLOBALS['toolboxLogger'] = 'log2Console';
+    }
+
+    Logger::configure('resources/logging/logconfig.xml');
+    $logger = Logger::getLogger($GLOBALS['toolboxLogger']);
+
     $schemaTool = new \Doctrine\ORM\Tools\SchemaTool($entityManager);
     $classes = $entityManager->getMetadataFactory()->getAllMetadata();
 
     $deleteSchema = $options["s"];
+
     if (strcasecmp($deleteSchema, "y") == 0) {
         $schemaTool->dropSchema($classes);
     }

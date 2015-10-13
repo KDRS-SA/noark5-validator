@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration xmlns="http://logging.apache.org/log4php/">
+    <appender name="validatorAppenderConsole" class="LoggerAppenderConsole">
+        <layout class="LoggerLayoutSimple" />
+    </appender>
+    <root>
+        <appender_ref ref="validatorAppenderConsole" />
+    </root>
+</configuration>

@@ -1,4 +1,5 @@
 <?php
+
 require_once ('models/noark5/v31/FondsCreator.php');
 use Doctrine\Common\Collections\ArrayCollection;
 /**
@@ -55,11 +56,11 @@ class CorrespondencePart
 
     // Links to Records
     /** @ManyToMany(targetEntity="RegistryEntry", mappedBy="referenceCorrespondancePart", cascade={"persist", "remove"}) **/
-    protected $referenceRecord;
+    protected $referenceRegistryEntry;
 
     public function __construct()
     {
-        $this->referenceRecord = new ArrayCollection();
+        $this->referenceRegistryEntry = new ArrayCollection();
     }
 
     public function getId()
@@ -194,24 +195,22 @@ class CorrespondencePart
         return $this;
     }
 
-    public function getReferenceRecord()
+    public function getreferenceRegistryEntry()
     {
-        return $this->referenceRecord;
+        return $this->referenceRegistryEntry;
     }
 
-    public function setReferenceRecord($referenceRecord)
+    public function setreferenceRegistryEntry($referenceRegistryEntry)
     {
-        $this->referenceRecord = $referenceRecord;
+        $this->referenceRegistryEntry = $referenceRegistryEntry;
         return $this;
     }
     public function addRecord($record) {
 
-        if ($this->referenceRecord->contains($record)) {
+        if ($this->referenceRegistryEntry->contains($record)) {
             return;
         }
-
-        $this->referenceRecord[] = $record;
-        $record->addCorrespondencePart($this);
+        $this->referenceRegistryEntry[] = $record;
     }
 
     public function __toString()

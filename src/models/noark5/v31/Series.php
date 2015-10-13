@@ -1,4 +1,5 @@
 <?php
+
 use Doctrine\Common\Collections\ArrayCollection;
 require_once ('models/noark5/v31/Fonds.php');
 require_once ('utils/Constants.php');
@@ -84,10 +85,16 @@ class Series
     protected $referenceSuccessor;
 
     // Link to ClassificationSystem
-    /** @ManyToOne (targetEntity="ClassificationSystem", fetch="EXTRA_LAZY")
-             @JoinColumn(name = "series_classification_system_id",
-                referencedColumnName = "pk_classification_system_id")
-    **/
+    /**
+     * @ManyToMany(targetEntity="ClassificationSystem", fetch="EXTRA_LAZY")
+     * @JoinTable(name="series_classfication_system",
+     * joinColumns=@JoinColumn(
+     * name="f_pk_series_id",
+     * referencedColumnName="pk_series_id"),
+     * inverseJoinColumns=@JoinColumn(
+     * name="f_pk_classification_system_id",
+     * referencedColumnName="pk_classification_system_id"))
+     */
     protected $referenceClassificationSystem;
 
     // Links to Files
@@ -98,11 +105,48 @@ class Series
     /** @OneToMany(targetEntity="Record", mappedBy = "referenceSeries", fetch="EXTRA_LAZY") **/
     protected $referenceRecord;
 
+    // Link to Classified
+    /** @ManyToOne(targetEntity="Classified", fetch="EXTRA_LAZY")
+     *   @JoinColumn(name="series_classified_id",
+     *        referencedColumnName="pk_classified_id")
+     **/
+    protected $referenceClassified;
+
+    // Link to DisposalUndertaken
+    /** @ManyToOne(targetEntity="DisposalUndertaken", fetch="EXTRA_LAZY")
+     *   @JoinColumn(name="series_disposal_undertaken_id",
+     *        referencedColumnName="pk_disposal_undertaken_id")
+     **/
+    protected $referenceDisposalUndertaken;
+
+    // Link to Disposal
+    /** @ManyToOne(targetEntity="Disposal", fetch="EXTRA_LAZY")
+     *   @JoinColumn(name="series_disposal_id",
+     *        referencedColumnName="pk_disposal_id")
+     **/
+    protected $referenceDisposal;
+
+    // Link to Deletion
+    /** @ManyToOne(targetEntity="Deletion", fetch="EXTRA_LAZY")
+     *   @JoinColumn(name="series_deletion_id",
+     *        referencedColumnName="pk_deletion_id")
+     **/
+    protected $referenceDeletion;
+
+    // Link to Screening
+    /** @ManyToOne(targetEntity="Screening", fetch="EXTRA_LAZY")
+     *   @JoinColumn(name="series_screening_id",
+     *        referencedColumnName="pk_screening_id")
+     **/
+    protected $referenceScreening;
+
     public function __construct()
     {
         $this->referenceStorageLocation = new ArrayCollection();
         $this->referenceFile = new ArrayCollection();
         $this->referenceRecord = new ArrayCollection();
+        //TODO: CHECK THIS $this->referenceClassified = new ArrayCollection();
+        $this->referenceClassificationSystem = new ArrayCollection();
     }
 
     public function getId()
@@ -296,6 +340,16 @@ class Series
         return $this;
     }
 
+    public function addReferenceClassificationSystem($classificationSystem)
+    {
+        if ($this->referenceClassificationSystem->contains($classificationSystem)) {
+            return;
+        }
+        $this->referenceClassificationSystem[]  = $classificationSystem;
+        $classificationSystem->addReferenceSeries($this);
+        return $this;
+    }
+
     public function getReferenceFile()
     {
         return $this->referenceFile;
@@ -324,6 +378,61 @@ class Series
 
     public function addReferenceRecord($record) {
         $this->referenceRecord[] = $record;
+    }
+
+    public function getReferenceClassified()
+    {
+        return $this->referenceClassified;
+    }
+
+    public function setReferenceClassified($referenceClassified)
+    {
+        $this->referenceClassified = $referenceClassified;
+        return $this;
+    }
+
+    public function getReferenceDisposalUndertaken()
+    {
+        return $this->referenceDisposalUndertaken;
+    }
+
+    public function setReferenceDisposalUndertaken($referenceDisposalUndertaken)
+    {
+        $this->referenceDisposalUndertaken = $referenceDisposalUndertaken;
+        return $this;
+    }
+
+    public function getReferenceDisposal()
+    {
+        return $this->referenceDisposal;
+    }
+
+    public function setReferenceDisposal($referenceDisposal)
+    {
+        $this->referenceDisposal = $referenceDisposal;
+        return $this;
+    }
+
+    public function getReferenceDeletion()
+    {
+        return $this->referenceDeletion;
+    }
+
+    public function setReferenceDeletion($referenceDeletion)
+    {
+        $this->referenceDeletion = $referenceDeletion;
+        return $this;
+    }
+
+    public function getReferenceScreening()
+    {
+        return $this->referenceScreening;
+    }
+
+    public function setReferenceScreening($referenceScreening)
+    {
+        $this->referenceScreening = $referenceScreening;
+        return $this;
     }
 
     public function __toString()

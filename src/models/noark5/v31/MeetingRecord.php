@@ -1,22 +1,18 @@
 <?php
-require_once ('models/noark5/v31/BasicRecord.php');
 
+require_once ('models/noark5/v31/BasicRecord.php');
 
 /**
  * @Entity @Table(name="meeting_record")
  **/
-
-class MeetingRecord //extends BasicRecord
+class MeetingRecord extends BasicRecord
 {
-    /** TODO: REMOVE @Id @Column(type="bigint", name="pk_record_id", nullable=false) @GeneratedValue **/
-    protected $id;
-
     /** M085 - moeteregistreringstype (xs:string) */
     /** @Column(type="string", name = "meeting_record_type", nullable=true) **/
     protected $meetingRecordType;
 
     /** M088 - moetesakstype (xs:string) */
-    /** @Column(type="string", name = "meeting_ase_type", nullable=true) **/
+    /** @Column(type="string", name = "meeting_case_type", nullable=true) **/
     protected $meetingCaseType;
 
     /** M305 - administrativEnhet (xs:string) */
@@ -31,17 +27,27 @@ class MeetingRecord //extends BasicRecord
     /** @Column(type="string", name = "case_handler", nullable=true) **/
     protected $caseHandler;
 
-    // Link to precursor MeetingRecord
-    /** @OneToOne(targetEntity="MeetingRecord", fetch="EXTRA_LAZY", mappedBy = "referenceFromMeetingRegistration") **/
+    // Link to MeetingFile
+    /** @ManyToOne(targetEntity="MeetingFile", fetch="EXTRA_LAZY")
+     *   @JoinColumn(name="meeting_record_meeting_file_id",
+     *        referencedColumnName="pk_file_id")
+     **/
+    protected $referenceMeetingFile;
+
+    /** M223 - referanseTilMoeteregistrering (xs:string) **/
     protected $referenceToMeetingRegistration;
 
-    // Link to successor MeetingRecord
-    /** @OneToOne(targetEntity="MeetingRecord", fetch="EXTRA_LAZY", mappedBy = "referenceToMeetingRegistration") **/
+    /** M224 - referanseFraMoeteregistrering (xs:string) **/
     protected $referenceFromMeetingRegistration;
 
     public function __construct()
     {
         parent::__construct();
+    }
+
+    public function getId()
+    {
+        return $this->id;
     }
 
     public function getMeetingRecordType()
@@ -107,6 +113,17 @@ class MeetingRecord //extends BasicRecord
     public function setreferenceToMeetingRegistration($referenceToMeetingRegistration)
     {
         $this->referenceToMeetingRegistration = $referenceToMeetingRegistration;
+        return $this;
+    }
+
+    public function getReferenceMeetingFile()
+    {
+        return $this->referenceMeetingFile;
+    }
+
+    public function setReferenceMeetingFile($referenceMeetingFile)
+    {
+        $this->referenceMeetingFile = $referenceMeetingFile;
         return $this;
     }
 

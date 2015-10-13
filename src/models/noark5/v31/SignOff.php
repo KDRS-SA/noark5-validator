@@ -1,4 +1,5 @@
 <?php
+
 use Doctrine\Common\Collections\ArrayCollection;
 require_once ('models/noark5/v31/RegistryEntry.php');
 
@@ -11,7 +12,7 @@ class SignOff
     protected $id;
 
     /** M617 - avskrivningsdato */
-    /** @Column(type="datetime", name = "sign_off_date", nullable=true) **/
+    /** @Column(type="date", name = "sign_off_date", nullable=true) **/
     protected $signOffDate;
 
     /** M618 - avskrevetAv */
@@ -56,7 +57,7 @@ class SignOff
     public function setSignOffDate($signOffDate)
     {
         // have to convert from string object to datetime object
-        $this->signOffDate = DateTime::createFromFormat(Constants::XSD_DATETIME_FORMAT, $signOffDate);
+        $this->signOffDate = DateTime::createFromFormat(Constants::XSD_DATE_FORMAT, $signOffDate);
         return $this;
     }
 
@@ -110,6 +111,9 @@ class SignOff
         return $this;
     }
 
+    public function __toString() {
+        return 'SignOff id[' . $this->id . '], signOffBy[' .   $this->signOffBy . '], signOffMethod [' .   $this->signOffMethod . ']';
+    }
 }
 
 ?>

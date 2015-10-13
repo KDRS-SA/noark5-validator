@@ -1,4 +1,5 @@
 <?php
+
 require_once 'XMLTest.php';
 require_once 'utils/Constants.php';
 
@@ -13,48 +14,45 @@ class XMLTestWellFormed extends XMLTest {
 	function __construct($testName, $directory, $fileName, $testProperty) {
 		parent::__construct($testName, $directory, $fileName, $testProperty);
 		$this->fileName = $fileName;
-		// Assumption is that test will be true, need to prove false
-		$this->testResult = true;
 	}
 
 	public function runTest () {
+        $testResult = true;
+
+	    $this->logger->trace('Entering ' . __METHOD__);
+	    $this->logger->info('  Testing the file [' . $this->fileName . '] for well-formedness');
 
 		$xmlParser = xml_parser_create();
 
-		if (!($fp = fopen(join(DIRECTORY_SEPARATOR, array($this->directory, $this->fileName)), "r"))) {
-		    die("could not open XML input");
+		$file = join(DIRECTORY_SEPARATOR, array($this->directory, $this->fileName));
+		if (!($fp = fopen($file, "r"))) {
+		    $this->logger->error('  Could not open XML-file for input [' . $file . ']');
+		    throw new Exception ('Could not open XML input : ' . $file);
 		}
 
 		$errorFound = false;
-
 		while (($data = fread($fp, Constants::XML_PARSE_BUFFER_SIZE)) && $errorFound == false) {
-
 		    if (!xml_parse($xmlParser, $data, feof($fp))) {
-				$this->testResult = false;
+				$testResult = false;
 				$errorFound = true;
-		    	echo 'Error ' . xml_error_string(xml_get_error_code($xmlParser)) . PHP_EOL;
-		    	echo ' Line number' . xml_get_current_line_number($xmlParser) . PHP_EOL;
-
-//		        $errorInformation[] = new WellFormedErrorInformation(
-	//	        						xml_error_string(xml_get_error_code($xml_parser)),
-		//        						xml_get_current_line_number($xml_parser));
-		        }
+				$this->logger->error(xml_get_current_line_number($xmlParser) . ' ' .
+				                        xml_error_string(xml_get_error_code($xmlParser)));
+	        }
 		}
 
-
 		xml_parser_free($xmlParser);
-
-		if ($this->testResult == true) {
+		if ($testResult == true) {
 			$this->testProperty->addTestResult(true);
+		    $this->logger->info(' RESULT The file ' . $this->fileName . ' is well-formed.');
 			$this->testProperty->addTestResultDescription('The file ' . $this->fileName . ' is well-formed.');
 			$this->testProperty->addTestResultReportDescription('Filen ' . $this->fileName . ' er korrektstrukturert.');
 		}
 		else {
 			$this->testProperty->addTestResult(false);
 			$this->testProperty->addTestResultDescription('The file ' . $this->fileName . ' is not well-formed.');
+			$this->logger->error(' RESULT The file ' . $this->fileName . ' is not well-formed.');
 			$this->testProperty->addTestResultReportDescription('Filen ' . $this->fileName . ' er ikke korrektstrukturert.');
 		}
-
 	}
 }
 

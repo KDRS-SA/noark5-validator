@@ -1,4 +1,5 @@
 <?php
+
 require_once ('tests/Test.php');
 require_once ('utils/Constants.php');
 

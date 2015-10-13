@@ -1,4 +1,5 @@
 <?php
+use Doctrine\Common\Collections\ArrayCollection;
 
 require_once ('models/noark5/v31/Series.php');
 require_once ('models/noark5/v31/File.php');
@@ -6,84 +7,139 @@ require_once ('models/noark5/v31/Klass.php');
 require_once ('models/noark5/v31/StorageLocation.php');
 require_once ('models/noark5/v31/DocumentDescription.php');
 require_once ('models/noark5/v31/DocumentObject.php');
-//require_once ('models/noark5/v31/BasicRecord.php');
-//require_once ('models/noark5/v31/RegistryEntry.php');
 require_once ('utils/Constants.php');
 
 /**
-  * @Entity @Table(name="record")
-  * @InheritanceType("JOINED")
-  * @DiscriminatorColumn(name="discr", type="string")
-  * @DiscriminatorMap({"record" = "Record", "basicrecord" = "BasicRecord", "registryentry" = "RegistryEntry"})
-  *
-  **/
+ * @Entity @Table(name="record")
+ * @InheritanceType("JOINED")
+ * @DiscriminatorColumn(name="discr", type="string")
+ * @DiscriminatorMap({"record" = "Record", "basicrecord" = "BasicRecord", "registryentry" = "RegistryEntry", "meetingrecord" = "MeetingRecord"})
+ */
 class Record
 {
-    /** @Id @Column(type="bigint", name="pk_record_id", nullable=false) @GeneratedValue **/
+
+    /**
+     * @Id @Column(type="bigint", name="pk_record_id", nullable=false) @GeneratedValue *
+     */
     protected $id;
 
-    /** M001 - systemID (xs:string) */
-    /**  @Column(type="string", name="system_id", nullable=true) **/
+    /**
+     * M001 - systemID (xs:string)
+     */
+    /**
+     * @Column(type="string", name="system_id", nullable=true) *
+     */
     protected $systemId;
 
-    /** M600 - opprettetDato (xs:dateTime) */
-    /**  @Column(type="datetime", name="created_date", nullable=true) **/
+    /**
+     * M600 - opprettetDato (xs:dateTime)
+     */
+    /**
+     * @Column(type="datetime", name="created_date", nullable=true) *
+     */
     protected $createdDate;
 
-    /** M601 - opprettetAv (xs:string) */
-    /**  @Column(type="string", name="created_by", nullable=true) **/
+    /**
+     * M601 - opprettetAv (xs:string)
+     */
+    /**
+     * @Column(type="string", name="created_by", nullable=true) *
+     */
     protected $createdBy;
 
- 	/** M604 - arkivertDato (xs:dateTime) */
-    /**  @Column(type="datetime", name="archived_date", nullable=true) **/
+    /**
+     * M604 - arkivertDato (xs:dateTime)
+     */
+    /**
+     * @Column(type="datetime", name="archived_date", nullable=true) *
+     */
     protected $archivedDate;
 
-	/** M605 - arkivertAv (xs:string) */
-    /**  @Column(type="string", name="archived_by", nullable=true) **/
+    /**
+     * M605 - arkivertAv (xs:string)
+     */
+    /**
+     * @Column(type="string", name="archived_by", nullable=true) *
+     */
     protected $archivedBy;
 
     // Link to File
-    /** @ManyToOne(targetEntity="File", fetch="EXTRA_LAZY", cascade={"persist", "remove"})
-     *   @JoinColumn(name="record_file_id",
-     *        referencedColumnName="pk_file_id")
-     **/
+    /**
+     * @ManyToOne(targetEntity="File", fetch="EXTRA_LAZY", cascade={"persist", "remove"})
+     * @JoinColumn(name="record_file_id",
+     * referencedColumnName="pk_file_id")
+     */
     protected $referenceFile;
 
     // Link to Series
-    /** @ManyToOne(targetEntity="Series", fetch="EXTRA_LAZY", cascade={"persist", "remove"})
-     *   @JoinColumn(name="record_series_id",
-     *        referencedColumnName="pk_series_id")
-     **/
+    /**
+     * @ManyToOne(targetEntity="Series", fetch="EXTRA_LAZY", cascade={"persist", "remove"})
+     * @JoinColumn(name="record_series_id",
+     * referencedColumnName="pk_series_id")
+     */
     protected $referenceSeries;
 
     // Link to Class
-    /** @ManyToOne(targetEntity="Klass", fetch="EXTRA_LAZY")
-     *   @JoinColumn(name="record_class_id",
-     *        referencedColumnName="pk_class_id")
-     **/
+    /**
+     * @ManyToOne(targetEntity="Klass", fetch="EXTRA_LAZY")
+     * @JoinColumn(name="record_class_id",
+     * referencedColumnName="pk_class_id")
+     */
     protected $referenceClass;
 
     // Links to DocumentDescriptions
-    /** @ManyToMany(targetEntity="DocumentDescription", fetch="EXTRA_LAZY", cascade={"persist", "remove"})
-     *   @JoinTable(name="record_document_description",
-     *        joinColumns=@JoinColumn(
-     *        name="f_pk_record_id",
-     *        referencedColumnName="pk_record_id"),
-     *    inverseJoinColumns=@JoinColumn(
-     *        name="f_pk_document_description_id",
-     *        referencedColumnName="pk_document_description_id"))
-     * */
+    /**
+     * @ManyToMany(targetEntity="DocumentDescription", fetch="EXTRA_LAZY", cascade={"persist", "remove"})
+     * @JoinTable(name="record_document_description",
+     * joinColumns=@JoinColumn(
+     * name="f_pk_record_id",
+     * referencedColumnName="pk_record_id"),
+     * inverseJoinColumns=@JoinColumn(
+     * name="f_pk_document_description_id",
+     * referencedColumnName="pk_document_description_id"))
+     */
     protected $referenceDocumentDescription;
 
     // Links to DocumentObjects
-    /** @OneToMany(targetEntity="DocumentObject", mappedBy="referenceRecord", fetch="EXTRA_LAZY") **/
+    /**
+     * @OneToMany(targetEntity="DocumentObject", mappedBy="referenceRecord", fetch="EXTRA_LAZY") *
+     */
     protected $referenceDocumentObject;
 
-    /** @Embedded(class = "Screening") */
-    protected $screening;
+    // Links to CrossReference
+    /**
+     * @OneToMany(targetEntity="CrossReference", mappedBy="referenceRecord", fetch="EXTRA_LAZY") *
+     */
+    protected $referenceCrossReference;
+
+    // Link to Screening
+    /**
+     * @ManyToOne(targetEntity="Screening", fetch="EXTRA_LAZY")
+     * @JoinColumn(name="record_screening_id",
+     * referencedColumnName="pk_screening_id")
+     */
+    protected $referenceScreening;
+
+    // Link to Classified
+    /**
+     * @ManyToOne(targetEntity="Classified", fetch="EXTRA_LAZY")
+     * @JoinColumn(name="record_classified_id",
+     * referencedColumnName="pk_classified_id")
+     */
+    protected $referenceClassified;
+
+    // Link to Disposal
+    /**
+     * @ManyToOne(targetEntity="Disposal", fetch="EXTRA_LAZY")
+     * @JoinColumn(name="record_disposal_id",
+     * referencedColumnName="pk_disposal_id")
+     */
+    protected $referenceDisposal;
 
     function __construct()
-    {}
+    {
+        $this->referenceCrossReference = new ArrayCollection();
+    }
 
     public function getId()
     {
@@ -114,7 +170,7 @@ class Record
 
     public function setCreatedDate($createdDate)
     {
-         // have to convert from string object to datetime object
+        // have to convert from string object to datetime object
         $this->createdDate = DateTime::createFromFormat(Constants::XSD_DATETIME_FORMAT, $createdDate);
         return $this;
     }
@@ -209,17 +265,17 @@ class Record
         return $this;
     }
 
-    public function getScreening()
+
+    public function getReferenceScreening()
     {
-        return $this->screening;
+        return $this->referenceScreening;
     }
 
-    public function setScreening($screening)
+    public function addReferenceScreening($referenceScreening)
     {
-        $this->screening = $screening;
+        $this->referenceScreening[] = $referenceScreening;
         return $this;
     }
-
     public function getReferenceSeries()
     {
         return $this->referenceSeries;
@@ -236,6 +292,50 @@ class Record
         return __METHOD__ . " id[" . $this->id . "], " . "systemId[" . $this->systemId . "]";
     }
 
+    public function getReferenceCrossReference()
+    {
+        return $this->referenceCrossReference;
+    }
+
+    public function setReferenceCrossReference($referenceCrossReference)
+    {
+        $this->referenceCrossReference = $referenceCrossReference;
+        return $this;
+    }
+
+    public function addReferenceCrossReference($crossReference)
+    {
+        if ($this->referenceCrossReference->contains($crossReference)) {
+            return $this;
+        }
+
+        $this->referenceCrossReference[] = $crossReference;
+        $crossReference->setReferenceRecord($this);
+        return $this;
+    }
+
+
+    public function getReferenceClassified()
+    {
+        return $this->referenceClassified;
+    }
+
+    public function setReferenceClassified($referenceClassified)
+    {
+        $this->referenceClassified = $referenceClassified;
+        return $this;
+    }
+
+    public function getReferenceDisposal()
+    {
+        return $this->referenceDisposal;
+    }
+
+    public function setReferenceDisposal($referenceDisposal)
+    {
+        $this->referenceDisposal = $referenceDisposal;
+        return $this;
+    }
 
 }
 

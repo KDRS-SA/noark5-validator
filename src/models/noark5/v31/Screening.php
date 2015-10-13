@@ -1,8 +1,14 @@
 <?php
+use Doctrine\Common\Collections\ArrayCollection;
 
-/** @Embeddable */
+/**
+ * @Entity @Table(name="screening")
+ **/
 class Screening
 {
+    /** @Id @Column(type="bigint", name="pk_screening_id", nullable=false) @GeneratedValue **/
+    protected $id;
+
     /** M500 - tilgangsrestriksjon n4 (JP.TGKODE) */
     /** @Column(name = "access_restriction", type = "string", nullable=true) **/
     protected $accessRestriction;
@@ -12,23 +18,45 @@ class Screening
     protected $screeningAuthority;
 
     /** M502 - skjermingMetadata should be 1-M */
-    /** @Column(name = "screened_metadata", type = "string", nullable=true) **/
-    protected $screenedMetadata;
+    /** @Column(name = "screening_metadata", type = "string", nullable=true) **/
+    protected $screeningMetadata;
 
     /** M503 - skjermingDokument */
-    /** @Column(name = "screened_document", type = "string", nullable=true) **/
-    protected $screenedDocument;
+    /** @Column(name = "screening_document", type = "string", nullable=true) **/
+    protected $screeningDocument;
 
     /** M505 - skjermingOpphoererDato n4(JP.AGDATO)*/
-    /** @Column(name = "screening_expires", type = "datetime", nullable=true) **/
-    protected $screenedExpires;
+    /** @Column(name = "screening_expires", type = "date", nullable=true) **/
+    protected $screeningExpiresDate;
 
     /** M504 - skjermingsvarighet */
     /** @Column(name = "screening_duration", type = "string", nullable=true) **/
-    protected $screenedDuration;
+    protected $screeningDuration;
+
+    // Links to Series
+    /** @OneToMany(targetEntity="Series", mappedBy="referenceScreening", fetch="EXTRA_LAZY") **/
+    protected $referenceSeries;
+
+    // Links to Klass
+    /** @OneToMany(targetEntity="Klass", mappedBy="referenceScreening", fetch="EXTRA_LAZY") **/
+    protected $referenceKlass;
+
+    // Links to File
+    /** @OneToMany(targetEntity="File", mappedBy="referenceScreening", fetch="EXTRA_LAZY") **/
+    protected $referenceFile;
+
+    // Links to Record
+    /** @OneToMany(targetEntity="Record", mappedBy="referenceScreening", fetch="EXTRA_LAZY") **/
+    protected $referenceRecord;
+
+    // Links to DocumentDescription
+    /** @OneToMany(targetEntity="DocumentDescription", mappedBy="referenceScreening", fetch="EXTRA_LAZY") **/
+    protected $referenceDocumentDescription;
 
     function __construct()
-    {}
+    {
+        $this->referenceSeries = new ArrayCollection();
+    }
 
     public function getAccessRestriction()
     {
@@ -52,50 +80,87 @@ class Screening
         return $this;
     }
 
-    public function getScreenedMetadata()
+    public function getScreeningMetadata()
     {
-        return $this->screenedMetadata;
+        return $this->screeningMetadata;
     }
 
-    public function setScreenedMetadata($screenedMetadata)
+    public function setScreeningMetadata($screeningMetadata)
     {
-        $this->screenedMetadata = $screenedMetadata;
+        $this->screeningMetadata = $screeningMetadata;
         return $this;
     }
 
-    public function getScreenedDocument()
+    public function getScreeningDocument()
     {
-        return $this->screenedDocument;
+        return $this->screeningDocument;
     }
 
-    public function setScreenedDocument($screenedDocument)
+    public function setScreeningDocument($screeningDocument)
     {
-        $this->screenedDocument = $screenedDocument;
+        $this->screeningDocument = $screeningDocument;
         return $this;
     }
 
-    public function getScreenedExpires()
+    public function getScreeningExpiresDate()
     {
-        return $this->screenedExpires;
+        return $this->screeningExpiresDate;
     }
 
-    public function setScreenedExpires($screenedExpires)
+    public function setScreeningExpiresDate($screeningExpiresDate)
     {
-        $this->screenedExpires = $screenedExpires;
+        $this->screeningExpiresDate = DateTime::createFromFormat(Constants::XSD_DATE_FORMAT, $screeningExpiresDate);
         return $this;
     }
 
-    public function getScreenedDuration()
+    public function getScreeningDuration()
     {
-        return $this->screenedDuration;
+        return $this->screeningDuration;
     }
 
-    public function setScreenedDuration($screenedDuration)
+    public function setScreeningDuration($screeningDuration)
     {
-        $this->screenedDuration = $screenedDuration;
+        $this->screeningDuration = $screeningDuration;
         return $this;
     }
 
+    public function getReferenceSeries()
+    {
+        return $this->referenceSeries;
+    }
+
+    public function setReferenceSeries($referenceSeries)
+    {
+        $this->referenceSeries[] = $referenceSeries;
+        $referenceSeries->setReferenceScreening($this);
+        return $this;
+    }
+
+    public function getReferenceKlass()
+    {
+        return $this->referenceKlass;
+    }
+
+    public function setReferenceKlass($referenceKlass)
+    {
+        $this->referenceKlass = $referenceKlass;
+        return $this;
+    }
+
+    public function getReferenceFile()
+    {
+        return $this->referenceFile;
+    }
+
+    public function setReferenceFile($referenceFile)
+    {
+        $this->referenceFile = $referenceFile;
+        return $this;
+    }
+
+    public function __toString() {
+        return 'Screening id' . $this->id . ' ' .   $this->accessRestriction . ' ' .   $this->screeningAuthority . ' ' .  $this->screeningMetadata;
+    }
 
 }
 

@@ -6,29 +6,17 @@ class ArkivstrukturDBImporter extends ArkivstrukturParser
 
     protected $entityManager;
 
-    protected $currentClass = null;
-
-    protected $currentClassificationsystem = null;
-
-    protected $currentDocumentDescription = null;
-
-    protected $currentFile = null;
-
-    protected $currentFonds = null;
-
-    protected $currentFondsCreator = null;
-
-    protected $currentRecord = null;
-
-    protected $currentSeries = null;
-
-    protected $currentSignOff = null;
-
     /*
      * //TODO : You have to handle
      * referanseArkivdel
      *
-     * How does the contains work, can you set equals ??? Use find byone
+     * Look at the flush command if it's not a File, i.e only records
+     *
+     * Tidy alphabetically, check that all add have a contains, consider reducing all pre to a singel function
+     * should all subclasses call parent in construct
+     *
+     * check logger messages, remove merge, persist at regualr intervals
+     * check messages and variables in error handling code for variables that don't exist
      *
      * Storagelocation - check ontomany/manytomany. defo problem here, check java version as well!
      *
@@ -42,233 +30,401 @@ class ArkivstrukturDBImporter extends ArkivstrukturParser
      * or keyword, the duplicate values will be added into
      * the database. We can consider searching for the key word first
      *
+     * ORM references are handles as follows:
+     *
+     * 1:1
+     *
+     * 1:M References are added to the many-side
+     *
+     * M:M References are added to both sides. The FROM-entity will always
+     * set the reference to the TO-entity
      *
      */
-    public function __construct($directory, $entityManager, $onlyParse)
+
+    // Used to handle the referanseArkivdel under File/Record/DocumentDescription
+    protected $currentSeries;
+
+    // Used when a class has a subclass. Neet to link every class back to classificationSystem
+    protected $currentClassificationSystem;
+
+    public function __construct($directory, $entityManager)
     {
         $this->entityManager = $entityManager;
-        parent::__construct($directory, null, null, $onlyParse);
+        parent::__construct($directory, null, null);
+    }
+
+    protected function preProcessNoarkObject($classType)
+    {
+        if ($this->checkObjectClassTypeCorrect($classType) == true) {
+            $noarkObject = end($this->stack);
+            $this->entityManager->persist($noarkObject);
+            $this->logger->trace('Persisting initial ' . $classType . ' to database. Method (' . __METHOD__ . ')' . $noarkObject);
+        } else {
+            throw new Exception(Constants::STACK_ERROR . __METHOD__ . ' Expected ' . $classType . ', found ' . get_class(end($this->stack)));
+        }
+    }
+
+    public function preProcessCaseParty()
+    {
+        $this->preProcessNoarkObject("CaseParty");
     }
 
     public function preProcessClassificationSystem()
     {
-        if ($this->checkObjectClassTypeCorrect("ClassificationSystem") == true) {
-            $classificationSystem = end($this->stack);
-            $this->currentClassificationsystem = $classificationSystem;
-            $this->entityManager->persist($classificationSystem);
-            $this->entityManager->flush();
-            $this->currentClassificationsystem = $classificationSystem;
-            $this->logger->trace('Persisting initial ClassificationSystem to database. Method (' . __METHOD__ . ')' . $classificationSystem);
-        } else {
-            throw new Exception(Constants::STACK_ERROR . __METHOD__ . " Expected ClassificationSystem, found " . get_class(end($this->stack)));
-        }
+        $this->preProcessNoarkObject("ClassificationSystem");
+        $this->currentClassificationSystem = end($this->stack);
+    }
+
+    public function preProcessClassified()
+    {
+        $this->preProcessNoarkObject("Classified");
     }
 
     public function preProcessClass()
     {
-        if ($this->checkObjectClassTypeCorrect("Klass") == true) {
-            $klass = end($this->stack);
-            $this->currentClass = $klass;
-            $this->entityManager->persist($klass);
-            $this->entityManager->flush();
-            $this->logger->trace('Persisting initial class to database. Method (' . __METHOD__ . ')' . $klass);
-        } else {
-            throw new Exception(Constants::STACK_ERROR . __METHOD__ . " Expected Class, found " . get_class(end($this->stack)));
-        }
+        $this->preProcessNoarkObject("Klass");
+    }
+
+    public function preProcessComment()
+    {
+        $this->preProcessNoarkObject("Comment");
+    }
+
+    public function preProcessConversion()
+    {
+        $this->preProcessNoarkObject("Conversion");
     }
 
     public function preProcessCorrespondencePart()
     {
-        if ($this->checkObjectClassTypeCorrect("CorrespondencePart") == true) {
-            $correspondencePart = end($this->stack);
-            $this->entityManager->persist($correspondencePart);
-            $this->entityManager->flush();
-            $this->logger->trace('Persisting initial correspondencePart to database. Method (' . __METHOD__ . ')' . $correspondencePart);
-        } else {
-            throw new Exception(Constants::STACK_ERROR . __METHOD__ . " Expected CorrespondencePart, found " . get_class(end($this->stack)));
-        }
+        $this->preProcessNoarkObject("CorrespondencePart");
+    }
+
+    public function preProcessCrossReference()
+    {
+        $this->preProcessNoarkObject("CrossReference");
+    }
+
+    public function preProcessDeletion()
+    {
+        $this->preProcessNoarkObject("Deletion");
+    }
+
+    public function preProcessDisposal()
+    {
+        $this->preProcessNoarkObject("Disposal");
+    }
+
+    public function preProcessDisposalUndertaken()
+    {
+        $this->preProcessNoarkObject("DisposalUndertaken");
     }
 
     public function preProcessDocumentDescription()
     {
-        if ($this->checkObjectClassTypeCorrect("DocumentDescription") == true) {
-            $documentDescription = end($this->stack);
-            $this->currentDocumentDescription = $documentDescription;
-            $this->entityManager->persist($documentDescription);
-            $this->entityManager->flush();
-            $this->logger->trace('Persisting initial documentDescription to database. Method (' . __METHOD__ . ')' . $documentDescription);
-        } else {
-            throw new Exception(Constants::STACK_ERROR . __METHOD__ . " Expected DocumentDescription, found " . get_class(end($this->stack)));
-        }
+        $this->preProcessNoarkObject("DocumentDescription");
     }
 
     public function preProcessDocumentObject()
     {
-        if ($this->checkObjectClassTypeCorrect("DocumentObject") == true) {
-            $documentObject = end($this->stack);
-            $this->entityManager->persist($documentObject);
-            $this->entityManager->flush();
-            $this->logger->trace('Persisting initial documentObject to database. Method (' . __METHOD__ . ')' . $documentObject);
-        } else {
-            throw new Exception(Constants::STACK_ERROR . __METHOD__ . " Expected DocumentObject, found " . get_class(end($this->stack)));
-        }
+        $this->preProcessNoarkObject("DocumentObject");
+    }
+
+    public function preProcessElectronicSignature()
+    {
+        // $this->preProcessNoarkObject("ElectronicSignature");
     }
 
     public function preProcessFile($classType)
     {
-        if ($this->checkObjectClassTypeCorrect($classType) == true) {
-            $file = end($this->stack);
-            $file->setReferenceSeries($this->currentSeries);
-            $this->entityManager->persist($file);
-            $this->entityManager->flush();
-            $this->currentFile = $file;
-            $this->logger->trace('Persisting initial file to database. Method (' . __METHOD__ . ')' . $file);
-        } else {
-            throw new Exception(Constants::STACK_ERROR . __METHOD__ . " Expected File, found " . get_class(end($this->stack)));
-        }
+        $this->preProcessNoarkObject($classType);
     }
 
     public function preProcessFonds()
     {
-        if ($this->checkObjectClassTypeCorrect("Fonds") == true) {
-            $fonds = end($this->stack);
-            $this->entityManager->persist($fonds);
-            // $this->entityManager->flush();
-            $this->currentFonds = $fonds;
-            $this->logger->trace('Persisting initial fonds to database. Method (' . __METHOD__ . ')' . $fonds);
-        } else {
-            throw new Exception(Constants::STACK_ERROR . __METHOD__ . " Expected Fonds, found " . get_class(end($this->stack)));
-        }
+        $this->preProcessNoarkObject("Fonds");
     }
 
     public function preProcessFondsCreator()
     {
-        if ($this->checkObjectClassTypeCorrect("FondsCreator") == true) {
-            $fondsCreator = end($this->stack);
-            $this->entityManager->persist($fondsCreator);
-            $this->entityManager->flush();
-            $this->currentFondsCreator = $fondsCreator;
-            $this->logger->trace('Persisting initial fondsCreator to database. Method (' . __METHOD__ . ')' . $fondsCreator);
-        } else {
-            throw new Exception(Constants::STACK_ERROR . __METHOD__ . " Expected FondsCreator, found " . get_class(end($this->stack)));
-        }
+        $this->preProcessNoarkObject("FondsCreator");
+    }
+
+    public function preProcessMeetingParticipant()
+    {
+        $this->preProcessNoarkObject("MeetingParticipant");
+    }
+
+    public function preProcessPrecedence()
+    {
+        $this->preProcessNoarkObject("Precedence");
     }
 
     public function preProcessRecord($classType)
     {
-        if ($this->checkObjectClassTypeCorrect($classType) == true) {
-            $record = end($this->stack);
-            $this->entityManager->persist($record);
-            $this->entityManager->flush();
-            $this->currentRecord = $record;
-            $this->logger->trace('Persisting initial record to database. Method (' . __METHOD__ . ')' . $record);
-        } else {
-            throw new Exception(Constants::STACK_ERROR . __METHOD__ . " Expected Record, found " . get_class(end($this->stack)));
-        }
+        $this->preProcessNoarkObject($classType);
+    }
+
+    public function preProcessScreening()
+    {
+        $this->preProcessNoarkObject("Screening");
     }
 
     public function preProcessSeries()
     {
-        if ($this->checkObjectClassTypeCorrect("Series") == true) {
-            $series = end($this->stack);
-            $series->setReferenceFonds($this->currentFonds);
-            $this->entityManager->persist($series);
-            $this->entityManager->flush();
-            $this->currentSeries = $series;
-            $this->logger->trace('Persisting initial series to database. Method (' . __METHOD__ . ')' . $series);
-        } else {
-            throw new Exception(Constants::STACK_ERROR . __METHOD__ . " Expected Series, found " . get_class(end($this->stack)));
-        }
+        $this->preProcessNoarkObject("Series");
+        $this->currentSeries = end($this->stack);
     }
 
     public function preProcessSignOff()
     {
-        if ($this->checkObjectClassTypeCorrect("SignOff") == true) {
-            $signOff = end($this->stack);
-            $this->entityManager->persist($signOff);
-            // $this->entityManager->flush();
-            $this->currentSignOff = $signOff;
-            $this->logger->trace('Persisting initial signOff to database. Method (' . __METHOD__ . ')' . $signOff);
-        } else {
-            throw new Exception(Constants::STACK_ERROR . __METHOD__ . " Expected SignOff, found " . get_class(end($this->stack)));
-        }
+        $this->preProcessNoarkObject("SignOff");
     }
 
-    public function postProcessClassificationSystem()
+    public function preProcessWorkflow()
     {
-        if ($this->checkObjectClassTypeCorrect("ClassificationSystem") == true) {
-            $classificationSystem = end($this->stack);
-
-            // Associate this series with the current classificationSystem object
-            // TODO: Note this code is not tested!
-            $classificationSystem->addReferenceSeries($this->currentSeries);
-            $this->currentSeries->addReferenceClassificationSystem($classificationSystem);
-
-            // $this->entityManager->merge($classificationSystem);
-            $this->entityManager->flush();
-            $this->logger->trace('Merging updated classificationSystem to database. Method (' . __METHOD__ . ')' . $classificationSystem);
-        } else {
-            throw new Exception(Constants::STACK_ERROR . __METHOD__ . ". Expected ClassificationSystem found " . get_class(end($this->stack)));
-        }
+        $this->preProcessNoarkObject("Workflow");
     }
 
+    public function postProcessCaseParty()
+    {
+        if ($this->checkObjectClassTypeCorrect("ClassificationSystem") === true) {
+
+            $parentObject = prev($this->stack);
+            $caseParty = end($this->stack);
+
+            if (get_class($parentObject) === "CaseFile") {
+                // Associate this CaseParty with the parent CaseFile
+                // CaseFile:CaseParty is M:M
+                // Two-way reference is set in addReferenceCaseParty
+                $parentObject->addReferenceCaseParty($parentObject);
+            } else {
+                throw new Exception("Incorrect parent object to CaseParty. Got " . get_class($parentObject), null, null);
+            }
+            $this->logger->trace('Updated a ' . get_class(end($this->stack)) . ' [' . end($this->stack) . ']');
+        } else {
+            throw new Exception(Constants::STACK_ERROR . __METHOD__ . ". Expected CaseParty found " . get_class(end($this->stack)));
+        }
+    }
     public function postProcessClass()
     {
-        if ($this->checkObjectClassTypeCorrect("Class") == true) {
+        if ($this->checkObjectClassTypeCorrect("Klass") === true) {
 
             $parentObject = prev($this->stack);
             $klass = end($this->stack);
 
-            // Associate this class with the current classificationSystem object
-            $klass->addReferenceClassificationSystem($this->currentClassificationSystem);
-
-            // If there is a Class object above me, then I am a child Class
-            if (get_class($parentObject) === "Klass") {
-                $this->setReferenceParentClass($parentObject);
+            if (get_class($parentObject) === "ClassificationSystem") {
+                // Associate this Class with the parent ClassificationSystem
+                // ClassificationSystem:Class is 1:M
+                $parentObject->addReferenceClass($klass);
+                $this->entityManager->flush();
+            } elseif (get_class($parentObject) === "Klass") {
+                // Associate this Class with the parent Class
+                // Class:Class is 1:M
                 $parentObject->addReferenceChildClass($klass);
             } else {
                 throw new Exception("Unknown parent object to Class. Got " . get_class($parentObject), null, null);
             }
-
-            $this->entityManager->merge($klass);
-            $this->entityManager->flush();
-            $this->logger->trace('Merging updated class to database. Method (' . __METHOD__ . ')' . $klass);
+            $this->logger->trace('Updated a ' . get_class(end($this->stack)) . ' [' . end($this->stack) . ']');
         } else {
             throw new Exception(Constants::STACK_ERROR . __METHOD__ . ". Expected Class found " . get_class(end($this->stack)));
         }
     }
 
+    public function postProcessClassified()
+    {
+        if ($this->checkObjectClassTypeCorrect("Classified") === true) {
+
+            $parentObject = prev($this->stack);
+            $classified = end($this->stack);
+
+            if (get_class($parentObject) === 'Series') {
+                // Associate this Classified with the parent Series
+                // Classified:Series is 1:M
+                $classified->addReferenceSeries($parentObject);
+            } elseif (get_class($parentObject) === 'File') {
+                // Associate this Classified with the parent File
+                // Classified:File is 1:M
+                $classified->addReferenceFile($parentObject);
+            } elseif (get_class($parentObject) === 'Klass') {
+                // Associate this Classified with the parent Klass
+                // Classified:Klass is 1:M
+                $classified->addReferenceRecord($parentObject);
+            } elseif (get_class($parentObject) === 'Record') {
+                // Associate this Classified with the parent Record
+                // Classified:Record is 1:M
+                $classified->addReferenceDocumentDescription($parentObject);
+            } elseif (get_class($parentObject) === 'DocumentDescription') {
+                // Associate this Classified with the parent DocumentDescription
+                // Classified:DocumentDescription is 1:M
+                $classified->addReferenceSeries($parentObject);
+            } else {
+                throw new Exception("Unknown parent object to Classified. Got " . get_class($parentObject), null, null);
+            }
+            $this->logger->trace('Updated a ' . get_class(end($this->stack)) . ' [' . end($this->stack) . ']');
+        } else {
+            throw new Exception(Constants::STACK_ERROR . __METHOD__ . ". Expected Classified found " . get_class(end($this->stack)));
+        }
+    }
+
+    public function postProcessClassificationSystem()
+    {
+        if ($this->checkObjectClassTypeCorrect("ClassificationSystem") === true) {
+
+            $parentObject = prev($this->stack);
+            $classificationSystem = end($this->stack);
+
+            if (get_class($parentObject) === "Series") {
+                // Associate this ClassificationSystem with the parent Series
+                // Series:ClassificationSystem is M:M
+                // Two-way reference is set in addReferenceClassificationSystem
+                $parentObject->addReferenceClassificationSystem($classificationSystem);
+            } else {
+                throw new Exception("Incorrect parent object to ClassificationSystem. Got " . get_class($parentObject), null, null);
+            }
+            $this->logger->trace('Updated a ' . get_class(end($this->stack)) . ' [' . end($this->stack) . ']');
+        } else {
+            throw new Exception(Constants::STACK_ERROR . __METHOD__ . ". Expected ClassificationSystem found " . get_class(end($this->stack)));
+        }
+    }
+
+    // Note that due linear processing, we do not
+    // keep earlier comments in memory. This reduces the
+    // M:M to 1:M. It's a trade-off on complexity/memory use.
+    public function postProcessComment()
+    {
+        if ($this->checkObjectClassTypeCorrect("Comment") === true) {
+            $parentObject = prev($this->stack);
+            $comment = end($this->stack);
+            $classParents = class_parents($parentObject);
+
+            if (isset($classParents["File"]) === true) {
+                // Associate this Comment with the parent File
+                // File:Comment is M:M
+                // Two-way reference is set in addReferenceComment
+                $parentObject->addReferenceComment($comment);
+            } elseif (isset($classParents["BasicRecord"]) === true) {
+                // Associate this Comment with the parent File
+                // BasicRecord:Comment is M:M
+                // Two-way reference is set in addReferenceComment
+                $parentObject->addReferenceComment($comment);
+            } elseif (get_class($parentObject) === "DocumentDescription") {
+                // Associate this Comment with the parent File
+                // DocumentDescription:Comment is M:M
+                // Two-way reference is set in addReferenceComment
+                $parentObject->addReferenceComment($comment);
+            } else {
+                throw new Exception("Unknown parent object to Comment. Got " . get_class($parentObject), null, null);
+            }
+            $this->logger->trace('Updated a ' . get_class(end($this->stack)) . ' [' . end($this->stack) . ']');
+        } else {
+            throw new Exception(Constants::STACK_ERROR . __METHOD__ . ". Expected Comment found " . get_class(end($this->stack)));
+        }
+    }
+
+    public function postProcessConversion()
+    {
+        if ($this->checkObjectClassTypeCorrect("Conversion") === true) {
+            $parentObject = prev($this->stack);
+            $conversion = end($this->stack);
+
+            if (get_class($parentObject) === "DocumentObject") {
+                // Associate this Conversion with the parent DocumentObject
+                // DocumentObject:Conversion is 1:M
+                $conversion->addReferenceDocumentObject();
+                $parentObject->addReferenceConversion($conversion);
+            } else {
+                throw new Exception("Unknown parent object to Conversion. Got " . get_class($parentObject), null, null);
+            }
+            $this->logger->trace('Updated a ' . get_class(end($this->stack)) . ' [' . end($this->stack) . ']');
+        } else {
+            throw new Exception(Constants::STACK_ERROR . __METHOD__ . ". Expected Comment found " . get_class(end($this->stack)));
+        }
+    }
+
     public function postProcessCorrespondencePart()
     {
-        if ($this->checkObjectClassTypeCorrect("CorrespondencePart") == true) {
+        if ($this->checkObjectClassTypeCorrect("CorrespondencePart") === true) {
+            $parentObject = prev($this->stack);
             $correspondencePart = end($this->stack);
 
-            // Associate this correspondencePart with the current registryEntry object
-            $correspondencePart->addRecord($this->currentRecord);
-            //$this->currentRecord->addCorrespondencePart($correspondencePart);
-
-            $this->entityManager->merge($correspondencePart);
-            $this->logger->trace('Merging updated correspondencePart to database. Method (' . __METHOD__ . ')' . $correspondencePart);
+            if (get_class($parentObject) === "RegistryEntry") {
+                // Associate this CorrespondencePart with the parent RegistryEntry
+                // RegistryEntry:CorrespondencePart is 1:M
+                $parentObject->addCorrespondencePart($correspondencePart);
+            } else {
+                throw new Exception("Unknown parent object to CorrespondencePart. Got " . get_class($parentObject), null, null);
+            }
+            $this->logger->trace('Updated a ' . get_class(end($this->stack)) . ' [' . end($this->stack) . ']');
         } else {
             throw new Exception(Constants::STACK_ERROR . __METHOD__ . ". Expected CorrespondencePart found " . get_class(end($this->stack)));
         }
     }
 
+    public function postProcessCrossReference()
+    {
+        if ($this->checkObjectClassTypeCorrect("CrossReference") === true) {
+            $parentObject = prev($this->stack);
+            $crossReference = end($this->stack);
+
+            if (get_class($parentObject) === "Klass" || get_class($parentObject) === "File" || get_class($parentObject) === "BasicRecord") {
+                // Associate this CrossReference with the parent Class | File | BasicRecord
+                // Object:CrossReference is 1:M
+                $parentObject->addReferenceCrossReference($crossReference);
+            } else {
+                throw new Exception("Unknown parent object to CrossReference. Got " . get_class($parentObject), null, null);
+            }
+            $this->logger->trace('Updated a ' . get_class(end($this->stack)) . ' [' . end($this->stack) . ']');
+        } else {
+            throw new Exception(Constants::STACK_ERROR . __METHOD__ . ". Expected CrossReference found " . get_class(end($this->stack)));
+        }
+    }
+
+    public function postProcessDeletion()
+    {
+        if ($this->checkObjectClassTypeCorrect("Deletion") === true) {
+            $parentObject = prev($this->stack);
+            $deletion = end($this->stack);
+
+            if (get_class($parentObject) === "Series") {
+                // Associate this Deletion with the parent Series
+                // Series:Deletion is 1:M
+                $deletion->addReferenceSeries($parentObject);
+            } elseif (get_class($parentObject) === "DocumentDescription") {
+                // Associate this Deletion with the parent DocumentDescription
+                // Series:DocumentDescription is 1:M
+                $deletion->addReferenceDocumentDescription($parentObject);
+            } else {
+                throw new Exception("Unknown parent object to Deletion. Got " . get_class($parentObject), null, null);
+            }
+            $this->logger->trace('Updated a ' . get_class(end($this->stack)) . ' [' . end($this->stack) . ']');
+        } else {
+            throw new Exception(Constants::STACK_ERROR . __METHOD__ . ". Expected Deletion found " . get_class(end($this->stack)));
+        }
+    }
+
+    public function postProcessDisposal()
+    {}
+
+    public function postProcessDisposalUndertaken()
+    {}
+
     public function postProcessDocumentDescription()
     {
-        if ($this->checkObjectClassTypeCorrect("DocumentDescription") == true) {
+        if ($this->checkObjectClassTypeCorrect("DocumentDescription") === true) {
+            $parentObject = prev($this->stack);
             $documentDescription = end($this->stack);
 
             // Associate this documentDescription with the current Record object
-            $documentDescription->addReferenceRecord($this->currentRecord);
+            $documentDescription->addReferenceRecord($parentObject);
 
             // Associate the current Record object with this documentDescription
             // It is not required to get the association correct in the db
             // but needed for the dettach
-            $this->currentRecord->addReferenceDocumentDescription($documentDescription);
-
-            $this->entityManager->merge($documentDescription);
-            $this->logger->trace('Merging updated documentDescription to database. Method (' . __METHOD__ . ')' . $documentDescription);
+            // $this->currentRecord->addReferenceDocumentDescription($documentDescription);
+            print $documentDescription . PHP_EOL;
+            $this->entityManager->flush();
+            $this->logger->trace('Updated a ' . get_class(end($this->stack)) . ' [' . end($this->stack) . ']');
         } else {
             throw new Exception(Constants::STACK_ERROR . __METHOD__ . ". Expected DocumentDescription found " . get_class(end($this->stack)));
         }
@@ -285,21 +441,21 @@ class ArkivstrukturDBImporter extends ArkivstrukturParser
                 // Associate this documentObject with the current DocumentDescription object
                 $documentObject->setReferenceDocumentDescription($parentObject);
                 $parentObject->addReferenceDocumentObject($documentObject);
-            } else
-                if ($parentObject instanceof $this->currentRecord) {
-                    // Associate this documentObject with the current Record object
-                    $documentObject->setReferencerecord($parentObject);
-                    $parentObject->addReferenceDocumentObject($documentObject);
-                } else {
-                    throw new Exception("Unknown parent object to DocumentObject. Got " . get_class($parentObject), null, null);
-                }
-
-            $this->entityManager->merge($documentObject);
-            $this->logger->trace('Merging updated documentObject to database. Method (' . __METHOD__ . ')' . $documentObject);
+            } elseif (class_parents($parentObject) === "Record") {
+                // Associate this documentObject with the current Record object
+                // $documentObject->setReferencerecord($parentObject);
+                $parentObject->addReferenceDocumentObject($documentObject);
+            } else {
+                $this->entityManager->flush();
+                throw new Exception("Unknown parent object to DocumentObject. Got " . get_class($parentObject), null, null);
+            }
         } else {
             throw new Exception(Constants::STACK_ERROR . __METHOD__ . ". Expected DocumentObject found " . get_class(end($this->stack)));
         }
     }
+
+    public function postProcessElectronicSignature()
+    {}
 
     public function postProcessFile($classType)
     {
@@ -312,22 +468,17 @@ class ArkivstrukturDBImporter extends ArkivstrukturParser
             if (get_class($parentObject) === "File") {
                 $this->setReferenceParentFile($parentObject);
                 $parentObject->addReferenceChildFile($file);
-            } else
-                if (get_class($parentObject) === "Klass") {
-                    // Associate this file with the current Klass object
-                    $file->setReferenceClass($parentObject);
-                } else
-                    if (get_class($parentObject) === "Series") {
-                        // Associate this file with the current series object
-                        $file->setReferenceSeries($parentObject);
-                    } else {
-                        throw new Exception("Unknown parent object to DocumentObject. Got " . get_class($parentObject), null, null);
-                    }
-
-            $this->entityManager->merge($file);
+            } elseif (get_class($parentObject) === "Klass") {
+                // Associate this file with the current Klass object
+                $file->setReferenceClass($parentObject);
+            } elseif (get_class($parentObject) === "Series") {
+                // Associate this file with the current series object
+                $file->setReferenceSeries($parentObject);
+            } else {
+                throw new Exception("Unknown parent object to DocumentObject. Got " . get_class($parentObject), null, null);
+            }
             $this->entityManager->flush();
-            $this->detachFileAndAllUnder($file);
-            $this->logger->trace('Merging updated file to database. Method (' . __METHOD__ . ')' . $file);
+            $this->logger->trace('Updated a ' . get_class(end($this->stack)) . ' [' . end($this->stack) . ']');
         } else {
             throw new Exception(Constants::STACK_ERROR . __METHOD__ . ". Expected File found " . get_class(end($this->stack)));
         }
@@ -343,14 +494,11 @@ class ArkivstrukturDBImporter extends ArkivstrukturParser
             if ($parentObject != false && get_class($parentObject) === "Fonds") {
                 $this->setReferenceParentFonds($parentObject);
                 $parentObject->addReferenceChildFonds($fonds);
-            } else
-                if ($parentObject != false) {
-                    throw new Exception("Unknown parent object to Fonds. Got " . get_class($parentObject), null, null);
-                }
+            } elseif ($parentObject != false) {
+                throw new Exception("Unknown parent object to Fonds. Got " . get_class($parentObject), null, null);
+            }
 
-            // $this->entityManager->merge($fonds);
-            // $this->entityManager->flush();
-            $this->logger->trace('Merging updated fonds to database. Method (' . __METHOD__ . ')' . $fonds);
+            $this->logger->trace('Updated a ' . get_class(end($this->stack)) . ' [' . end($this->stack) . ']');
         } else {
             throw new Exception(Constants::STACK_ERROR . __METHOD__ . ". Expected Fonds found " . get_class(end($this->stack)));
         }
@@ -359,17 +507,62 @@ class ArkivstrukturDBImporter extends ArkivstrukturParser
     public function postProcessFondsCreator()
     {
         if ($this->checkObjectClassTypeCorrect("FondsCreator") == true) {
+            $parentObject = prev($this->stack);
             $fondsCreator = end($this->stack);
 
             // Associate this fondsCreator with the current fonds object
-            $fondsCreator->addReferenceFonds($this->currentFonds);
-            // $this->currentFonds->addReferenceFondsCreator($fondsCreator);
-
-            // $this->entityManager->merge($fondsCreator);
-            // $this->entityManager->flush();
-            $this->logger->trace('Merging updated fondsCreator to database. Method (' . __METHOD__ . ')' . $fondsCreator);
+            $fondsCreator->addReferenceFonds($parentObject);
+            $this->logger->trace('Updated a ' . get_class(end($this->stack)) . ' [' . end($this->stack) . ']');
         } else {
             throw new Exception(Constants::STACK_ERROR . __METHOD__ . ". Expected FondsCreator found " . get_class(end($this->stack)));
+        }
+    }
+
+    public function postProcessMeetingParticipant()
+    {
+        if ($this->checkObjectClassTypeCorrect('MeetingParticipant') == true) {
+
+            $parentObject = prev($this->stack);
+            $meetingParticipant = end($this->stack);
+
+            if (get_class($parentObject) === "MeetingFile") {
+                $parentObject->addReferenceMeetingParticipant($meetingParticipant);
+                $this->logger->trace('In method ' . __METHOD__ . '. Associating meetingParticipant ' . $meetingParticipant . ' with meetingFile' . $parentObject);
+            } else {
+                throw new Exception(Constants::STACK_ERROR . __METHOD__ . ". Found a record associated with a " . get_class(end($this->stack)) . " object but according to n5 standard, this object cannot be associated with a MeetingFile");
+            }
+            $this->logger->trace('Updated a ' . get_class(end($this->stack)) . ' [' . end($this->stack) . ']');
+        } else {
+            throw new Exception(Constants::STACK_ERROR . __METHOD__ . ". Expected Record found " . get_class(end($this->stack)));
+        }
+    }
+
+    public function postProcessPrecedence()
+    {
+        if ($this->checkObjectClassTypeCorrect('Precedence') === true) {
+
+            $parentObject = prev($this->stack);
+            $precedence = end($this->stack);
+
+            if (get_class($parentObject) === "CaseFile") {
+                // Associate this Precedence with the parent CaseFile
+                // CaseFile:Precedence is M:M
+                // Two-way reference is set in addReferencePrecedence
+                $parentObject->addReferencePrecedence($precedence);
+                $this->logger->trace('Updated a ' . get_class(end($this->stack)) . ' [' . end($this->stack) . ']');
+            } elseif (get_class($parentObject) === "RegistryEntry") {
+                // Associate this Precedence with the parent RegistryEntry
+                // RegistryEntry:Precedence is M:M
+                // Two-way reference is set in addReferencePrecedence
+                $parentObject->addReferencePrecedence($precedence);
+                $this->logger->trace('Updated a ' . get_class(end($this->stack)) . ' [' . end($this->stack) . ']');
+            } else {
+                throw new Exception("Incorrect parent object to Precedence. Got " . get_class($parentObject), null, null);
+            }
+            $this->entityManager->flush();
+            $this->logger->trace('Updated a ' . get_class(end($this->stack)) . ' [' . end($this->stack) . ']');
+        } else {
+            throw new Exception(Constants::STACK_ERROR . __METHOD__ . ". Expected Record found " . get_class(end($this->stack)));
         }
     }
 
@@ -382,44 +575,64 @@ class ArkivstrukturDBImporter extends ArkivstrukturParser
 
             if ($parentObject instanceof series) {
                 // Associate this record object with the current Series object
-                $record->setReferenceSeries($this->currentSeries);
-                $this->logger->trace('In method ' . __METHOD__ . '. Associating record ' . $record . ' with serie ' . $this->currentSeries);
-            } else
-                if ($parentObject instanceof File) {
-                    // Associate this record object with the current File object
-                    $record->setReferenceFile($this->currentFile);
-                    // Doing this so I can call detach on all objects under File, inorder
-                    // to limit memory use
-                    $this->currentFile->addReferenceRecord($record);
-                    $this->logger->trace('In method ' . __METHOD__ . '. Associating record ' . $record . ' with file ' . $this->currentFile);
-                } else
-                    if ($parentObject instanceof Klass) {
-                        // Associate this record object with the current Klass object
-                        $record->addReferenceClass($this->currentClass);
-                        $this->logger->trace('In method ' . __METHOD__ . '. Associating record ' . $record . ' with class ' . $this->currentClass);
-                    } else {
-                        throw new Exception(Constants::STACK_ERROR . __METHOD__ . ". Found a record associated with a " . get_class(end($this->stack)) . " object but according to n5 standard, this object cannot be associated with a record");
-                    }
-            $this->entityManager->merge($record);
-
-            $this->logger->trace('Merging updated record to database. Method (' . __METHOD__ . ')' . $record);
+                $record->setReferenceSeries($parentObject);
+                $this->logger->trace('In method ' . __METHOD__ . '. Associating record ' . $record . ' with serie ' . $parentObject);
+            } elseif ($parentObject instanceof File) {
+                // Associate this record object with the current File object
+                $record->setReferenceFile($parentObject);
+                // Doing this so I can call detach on all objects under File, inorder
+                // to limit memory use
+                $parentObject->addReferenceRecord($record);
+                $this->logger->trace('In method ' . __METHOD__ . '. Associating record ' . $record . ' with file ' . $parentObject);
+            } elseif ($parentObject instanceof Klass) {
+                // Associate this record object with the current Klass object
+                $record->addReferenceClass($parentObject);
+                $this->logger->trace('In method ' . __METHOD__ . '. Associating record ' . $record . ' with class ' . $parentObject);
+            } else {
+                throw new Exception(Constants::STACK_ERROR . __METHOD__ . ". Found a record associated with a " . get_class(end($this->stack)) . " object but according to n5 standard, this object cannot be associated with a record");
+            }
+            $this->entityManager->flush();
+            $this->logger->trace('Updated a ' . get_class(end($this->stack)) . ' [' . end($this->stack) . ']');
         } else {
             throw new Exception(Constants::STACK_ERROR . __METHOD__ . ". Expected Record found " . get_class(end($this->stack)));
+        }
+    }
+
+    public function postProcessScreening()
+    {
+        if ($this->checkObjectClassTypeCorrect("Screening") == true) {
+
+            $parentObject = prev($this->stack);
+            $screening = end($this->stack);
+
+            if (get_class($parentObject) === 'Series') {
+                $screening->setReferenceSeries($parentObject);
+            } elseif (get_class($parentObject) === 'File') {
+                $screening->setReferenceFile($parentObject);
+            } elseif (get_class($parentObject) === 'Klass') {
+                $screening->setReferenceClass($parentObject);
+            } elseif (get_class($parentObject) === 'Record') {
+                $screening->setReferenceRecord($parentObject);
+            } elseif (get_class($parentObject) === 'DocumentDescription') {
+                $screening->setReferenceDocumentDescription($parentObject);
+            }
+
+            $this->logger->trace('Updated a ' . get_class(end($this->stack)) . ' [' . end($this->stack) . ']');
+        } else {
+            throw new Exception(Constants::STACK_ERROR . __METHOD__ . ". Expected Screening found " . get_class(end($this->stack)));
         }
     }
 
     public function postProcessSeries()
     {
         if ($this->checkObjectClassTypeCorrect("Series") == true) {
+            $parentObject = prev($this->stack);
             $series = end($this->stack);
-
             // Associate this series with the current fonds object
-            $series->setReferenceFonds($this->currentFonds);
-            $this->currentFonds->addReferenceSeries($series);
+            $series->setReferenceFonds($parentObject);
+            $parentObject->addReferenceSeries($series);
 
-            $this->entityManager->merge($series);
-            $this->entityManager->flush();
-            $this->logger->trace('Merging updated series to database. Method (' . __METHOD__ . ')' . $series);
+            $this->logger->trace('Updated a ' . get_class(end($this->stack)) . ' [' . end($this->stack) . ']');
         } else {
             throw new Exception(Constants::STACK_ERROR . __METHOD__ . ". Expected Series found " . get_class(end($this->stack)));
         }
@@ -428,20 +641,21 @@ class ArkivstrukturDBImporter extends ArkivstrukturParser
     public function postProcessSignOff()
     {
         if ($this->checkObjectClassTypeCorrect("SignOff") == true) {
+            $parentObject = prev($this->stack);
             $signOff = end($this->stack);
 
-            if (get_class($this->currentRecord) === "RegistryEntry") {
-                // Associate this signoff object with the current Record->RegistryEntry object
-                $this->currentRecord->addSignOff($signOff);
+            if (get_class($parentObject) === "RegistryEntry") {
+                $parentObject->addSignOff($signOff);
             }
 
-            $this->entityManager->merge($signOff);
-            $this->entityManager->flush();
-            $this->logger->trace('Merging updated signOff to database. Method (' . __METHOD__ . ')' . $signOff);
+            $this->logger->trace('Updated a ' . get_class(end($this->stack)) . ' [' . end($this->stack) . ']');
         } else {
             throw new Exception(Constants::STACK_ERROR . __METHOD__ . ". Expected SignOff found " . get_class(end($this->stack)));
         }
     }
+
+    public function postProcessWorkflow()
+    {}
 
     // Override
     protected function handleKeyword()
@@ -449,38 +663,33 @@ class ArkivstrukturDBImporter extends ArkivstrukturParser
         $keyword = new Keyword();
         $keyword->setKeyword($this->currentCdata);
 
+        $currentObject = end($this->stack);
+
+        if ($currentObject instanceof BasicRecord) {
+            // Associate this keyword object with the current Record->BaiscRecord object
+            $currentObject->addKeyword($keyword);
+            $keyword->addReferenceBasicRecord($currentObject);
+
+            $this->logger->trace('In method ' . __METHOD__ . '. Associating keyword ' . $keyword . ' with basicrecord ' . $currentObject);
+        } elseif ($currentObject instanceof File) {
+            // Associate this keyword object with the current File object
+            $currentObject->addKeyword($keyword);
+            // $keyword->addReferenceFile($this->currentFile);
+            $this->logger->trace('In method ' . __METHOD__ . '. Associating keyword ' . $keyword . ' with File ' . $currentObject);
+        } elseif ($currentObject instanceof Klass) {
+            // Associate this keyword object with the current Klass object
+            $currentObject->addKeyword($keyword);
+            $keyword->addReferenceClass($currentObject);
+            $this->logger->trace('In method ' . __METHOD__ . '. Associating keyword ' . $keyword . ' with class ' . $currentObject);
+        } else {
+            throw new Exception(Constants::STACK_ERROR . __METHOD__ . ". Found a keyword associated with a " . get_class(end($this->stack)) . " object but according to n5 standard, this object cannot be associated with a keyword");
+        }
+
         $this->entityManager->persist($keyword);
         $this->entityManager->flush();
-        $this->logger->trace('Persisting keyword to database. Method (' . __METHOD__ . ')' . $keyword);
 
-        $keywordUsingObject = end($this->stack);
-
-        if ($keywordUsingObject instanceof BasicRecord) {
-            // Associate this keyword object with the current Record->BaiscRecord object
-            $this->currentRecord->addKeyword($keyword);
-            $keyword->addReferenceBasicRecord($this->currentRecord);
-            $this->logger->trace('In method ' . __METHOD__ . '. Associating keyword ' . $keyword . ' with basicrecord ' . $this->currentRecord);
-        } else
-            if ($keywordUsingObject instanceof File) {
-                // Associate this keyword object with the current File object
-                $this->currentFile->addKeyword($keyword);
-                $keyword->addReferenceFile($this->currentFile);
-                $this->logger->trace('In method ' . __METHOD__ . '. Associating keyword ' . $keyword . ' with file ' . $this->currentFile);
-            } else
-                if ($keywordUsingObject instanceof Klass) {
-                    // Associate this keyword object with the current Klass object
-                    $this->currentClass->addKeyword($keyword);
-                    $keyword->addReferenceClass($this->currentClass);
-                    $this->logger->trace('In method ' . __METHOD__ . '. Associating keyword ' . $keyword . ' with class ' . $this->currentRecord);
-                } else {
-                    throw new Exception(Constants::STACK_ERROR . __METHOD__ . ". Found a keyword associated with a " . get_class(end($this->stack)) . " object but according to n5 standard, this object cannot be associated with a keyword");
-                }
-
-        $this->entityManager->merge($keyword);
-        $this->entityManager->flush();
         $this->logger->trace('Merging updated keyword to database. Method (' . __METHOD__ . ')' . $keyword);
     }
-
 
     // Override
     protected function handleAuthor()
@@ -488,28 +697,26 @@ class ArkivstrukturDBImporter extends ArkivstrukturParser
         $author = new Author();
         $author->setauthor($this->currentCdata);
 
-
+        $parentObject = prev($this->stack);
         $authorUsingObject = end($this->stack);
 
         if ($authorUsingObject instanceof BasicRecord) {
             // Associate this author object with the current Record->BasicRecord object
-            $this->currentRecord->addAuthor($author);
-            $this->logger->trace('In method ' . __METHOD__ . '. Associating author ' . $author . ' with basicrecord ' . $this->currentRecord);
-        }
-        else if ($authorUsingObject instanceof DocumentDescription) {
+            $authorUsingObject->addAuthor($author);
+            $this->logger->trace('In method ' . __METHOD__ . '. Associating author ' . $author . ' with basicrecord ' . $authorUsingObject);
+        } elseif ($authorUsingObject instanceof DocumentDescription) {
             // Associate this author object with the current DocumentDescription
-            $this->currentDocumentDescription->addAuthor($author);
-            $this->logger->trace('In method ' . __METHOD__ . '. Associating author ' . $author . ' with documentDescription ' . $this->currentDocumentDescription);
+            $authorUsingObject->addAuthor($author);
+            $this->logger->trace('In method ' . __METHOD__ . '. Associating author ' . $author . ' with documentDescription ' . $authorUsingObject);
         } else {
             throw new Exception(Constants::STACK_ERROR . __METHOD__ . ". Found a author associated with a " . get_class(end($this->stack)) . " object but according to n5 standard, this object cannot be associated with a author");
         }
         $this->entityManager->persist($author);
         $this->logger->trace('Persisting author to database. Method (' . __METHOD__ . ')' . $author);
 
-        //$this->entityManager->merge($author);
-        //$this->logger->trace('Merging updated author to database. Method (' . __METHOD__ . ')' . $author);
+        // $this->entityManager->merge($author);
+        // $this->logger->trace('Merging updated author to database. Method (' . __METHOD__ . ')' . $author);
     }
-
 
     protected function handleStorageLocation()
     {
@@ -535,39 +742,36 @@ class ArkivstrukturDBImporter extends ArkivstrukturParser
             $this->logger->trace('Persisting storageLocation to database. Method (' . __METHOD__ . ')' . $storageLocation);
         }
 
+        $parentObject = prev($this->stack);
         $storageLocationUsingObject = end($this->stack);
 
         if ($storageLocationUsingObject instanceof DocumentDescription) {
             // Associate this storageLocation object with the current documentDescription object
-            $this->currentDocumentDescription->addReferenceStorageLocation($storageLocation);
-            $storageLocation->addReferenceDocumentDescription($this->currentDocumentDescription);
-            $this->logger->trace('In method ' . __METHOD__ . '. Associating storageLocation ' . $storageLocation . ' with DocumentDescription ' . $this->currentDocumentDescription);
-        } else
-            if ($storageLocationUsingObject instanceof BasicRecord) {
-                // Associate this storageLocation object with the current Record->BaiscRecord object
-                $this->currentRecord->addReferenceStorageLocation($storageLocation);
-                $storageLocation->addReferenceBasicRecord($this->currentRecord);
-                $this->logger->trace('In method ' . __METHOD__ . '. Associating storageLocation ' . $storageLocation . ' with basicrecord ' . $this->currentRecord);
-            } else
-                if ($storageLocationUsingObject instanceof File) {
-                    // Associate this storageLocation object with the current File object
-                    $this->currentFile->addReferenceStorageLocation($storageLocation);
-                    $storageLocation->addReferenceFile($this->currentFile);
-                    $this->logger->trace('In method ' . __METHOD__ . '. Associating storageLocation ' . $storageLocation . ' with file ' . $this->currentFile);
-                } else
-                    if ($storageLocationUsingObject instanceof Series) {
-                        // Associate this storageLocation object with the current series object
-                        $this->currentSeries->addReferenceStorageLocation($storageLocation);
-                        $storageLocation->addReferenceSeries($this->currentSeries);
-                        $this->logger->trace('In method ' . __METHOD__ . '. Associating storageLocation ' . $storageLocation . ' with series ' . $this->currentSeries);
-                    } else
-                        if ($storageLocationUsingObject instanceof Fonds) {
-                            // Associate this storageLocation object with the current fonds object
-                            $storageLocation->addReferenceFonds($this->currentFonds);
-                            $this->logger->trace('In method ' . __METHOD__ . '. Associating storageLocation ' . $storageLocation . ' with fonds ' . $this->currentFonds);
-                        } else {
-                            throw new Exception(Constants::STACK_ERROR . __METHOD__ . ". Found a storage location associated with a " . get_class(end($this->stack)) . " object but according to n5 standard, this object cannot be associated with a storage location");
-                        }
+            $parentObject->addReferenceStorageLocation($storageLocation);
+            $storageLocation->addReferenceDocumentDescription($parentObject);
+            $this->logger->trace('In method ' . __METHOD__ . '. Associating storageLocation ' . $storageLocation . ' with DocumentDescription ' . $parentObject);
+        } elseif ($storageLocationUsingObject instanceof BasicRecord) {
+            // Associate this storageLocation object with the current Record->BaiscRecord object
+            $parentObject->addReferenceStorageLocation($storageLocation);
+            $storageLocation->addReferenceBasicRecord($parentObject);
+            $this->logger->trace('In method ' . __METHOD__ . '. Associating storageLocation ' . $storageLocation . ' with basicrecord ' . $parentObject);
+        } elseif ($storageLocationUsingObject instanceof File) {
+            // Associate this storageLocation object with the current File object
+            $parentObject->addReferenceStorageLocation($storageLocation);
+            $storageLocation->addReferenceFile($parentObject);
+            $this->logger->trace('In method ' . __METHOD__ . '. Associating storageLocation ' . $storageLocation . ' with file ' . $parentObject);
+        } elseif ($storageLocationUsingObject instanceof Series) {
+            // Associate this storageLocation object with the current series object
+            $parentObject->addReferenceStorageLocation($storageLocation);
+            $storageLocation->addReferenceSeries($parentObject);
+            $this->logger->trace('In method ' . __METHOD__ . '. Associating storageLocation ' . $storageLocation . ' with series ' . $parentObject);
+        } elseif ($storageLocationUsingObject instanceof Fonds) {
+            // Associate this storageLocation object with the current fonds object
+            $storageLocation->addReferenceFonds($parentObject);
+            $this->logger->trace('In method ' . __METHOD__ . '. Associating storageLocation ' . $storageLocation . ' with fonds ' . $parentObject);
+        } else {
+            throw new Exception(Constants::STACK_ERROR . __METHOD__ . ". Found a storage location associated with a " . get_class(end($this->stack)) . " object but according to n5 standard, this object cannot be associated with a storage location");
+        }
 
         // $this->entityManager->merge($storageLocation);
         $this->entityManager->flush();
@@ -615,6 +819,10 @@ class ArkivstrukturDBImporter extends ArkivstrukturParser
         $this->entityManager->detach($file);
     }
 
+    public function __toString()
+    {
+        return "id[" . $this->id . "], " . "systemId[" . $this->systemId . "] " . "title[" . $this->title . "] ";
+    }
 }
 
 ?>

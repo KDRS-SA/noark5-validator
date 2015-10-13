@@ -1,4 +1,5 @@
 <?php
+
 use Doctrine\Common\Collections\ArrayCollection;
 require_once ('models/noark5/v31/Fonds.php');
 require_once ('models/noark5/v31/BasicRecord.php');
@@ -30,15 +31,15 @@ class StorageLocation
     protected $referenceSeries;
 
     // Links to Files
-    /** @OneToMany(mappedBy = "referenceStorageLocation", targetEntity="File", fetch="EXTRA_LAZY") **/
+    /** @ManyToMany(mappedBy = "referenceStorageLocation", targetEntity="File", fetch="EXTRA_LAZY") **/
     protected $referenceFile;
 
     // Links to BasicRecords
-    /** @OneToMany(mappedBy = "referenceStorageLocation", targetEntity="BasicRecord", fetch="EXTRA_LAZY") **/
+    /** @ManyToMany(mappedBy = "referenceStorageLocation", targetEntity="BasicRecord", fetch="EXTRA_LAZY") **/
     protected $referenceRecord;
 
     // Links to DocumentDescription
-    /** @ManyToMany(mappedBy = "referenceStorageLocation", targetEntity="DocumentDescription", fetch="EXTRA_LAZY") **/
+    /** @OneToMany(mappedBy = "referenceStorageLocation", targetEntity="DocumentDescription", fetch="EXTRA_LAZY") **/
     protected $referenceDocumentDescription;
 
     function __construct()

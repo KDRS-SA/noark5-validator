@@ -1,5 +1,5 @@
 <?php
-
+use Doctrine\Common\Collections\ArrayCollection;
 require_once ('models/noark5/v31/File.php');
 require_once ('models/noark5/v31/CaseParty.php');
 
@@ -55,13 +55,25 @@ class CaseFile extends File
 	 *    inverseJoinColumns=@JoinColumn(
 	 *        name="f_pk_case_party_id",
 	 *        referencedColumnName="pk_case_party_id"))
-	 * */
+	 **/
 	protected $referenceCaseParty;
 
+	/** @ManyToMany(targetEntity="Precedence", fetch="EXTRA_LAZY")
+	 *   @JoinTable(name="case_file_precedence",
+	 *        joinColumns=@JoinColumn(
+	 *        name="f_pk_file_id",
+	 *        referencedColumnName="pk_file_id"),
+	 *    inverseJoinColumns=@JoinColumn(
+	 *        name="f_pk_precedence",
+	 *        referencedColumnName="pk_precedence"))
+	 **/
+	protected $referencePrecedence;
 
     public function __construct()
     {
         parent::__construct();
+        $this->referenceCaseParty = new ArrayCollection();
+        $this->referencePrecedence = new ArrayCollection();
     }
 
     public function getCaseYear()
@@ -173,6 +185,48 @@ class CaseFile extends File
     public function setOfficialTitle($officialTitle)
     {
         $this->officialTitle = $officialTitle;
+        return $this;
+    }
+
+    public function getReferenceCaseParty()
+    {
+        return $this->referenceCaseParty;
+    }
+
+    public function setReferenceCaseParty($referenceCaseParty)
+    {
+        $this->referenceCaseParty = $referenceCaseParty;
+        return $this;
+    }
+
+    public function addReferenceCaseParty($caseParty)
+    {
+        if ($this->referenceCaseParty->contains($caseParty)) {
+            return;
+        }
+        $this->referenceCaseParty[] = $caseParty;
+        $caseParty->addReferenceCaseFile($this);
+        return $this;
+    }
+
+    public function getReferencePrecedence()
+    {
+        return $this->referencePrecedence;
+    }
+
+    public function setReferencePrecedence($referencePrecedence)
+    {
+        $this->referencePrecedence = $referencePrecedence;
+        return $this;
+    }
+
+    public function addReferencePrecedence($precedence)
+    {
+        if ($this->referencePrecedence->contains($precedence)) {
+            return;
+        }
+        $this->referencePrecedence[] = $precedence;
+        $precedence->addReferenceCaseFile($this);
         return $this;
     }
 }

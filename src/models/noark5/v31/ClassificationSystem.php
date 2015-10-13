@@ -1,4 +1,5 @@
 <?php
+
 use Doctrine\Common\Collections\ArrayCollection;
 require_once ('models/noark5/v31/Series.php');
 require_once ('models/noark5/v31/Klass.php');
@@ -45,7 +46,7 @@ class ClassificationSystem
     protected $finalisedBy;
 
     // Links to Series
-    /** @OneToMany(targetEntity="Series", mappedBy="referenceClassificationSystem", fetch="EXTRA_LAZY") **/
+    /** @ManyToMany(targetEntity="Series", mappedBy="referenceClassificationSystem", fetch="EXTRA_LAZY") **/
     protected $referenceSeries;
 
     // Links to child Classes
@@ -166,6 +167,9 @@ class ClassificationSystem
 
     public function addReferenceSeries($series)
     {
+        if ($this->referenceSeries->contains($series)) {
+            return;
+        }
         $this->referenceSeries[] = $series;
         return $this;
     }
@@ -188,10 +192,18 @@ class ClassificationSystem
         return $this;
     }
 
-    public function addReferenceclass($class)
+    public function addReferenceClass($class)
     {
-        $this->referenceclass[] = $class;
+        if ($this->referenceClass->contains($class)) {
+            return;
+        }
+        $this->referenceClass[] = $class;
         return $this;
+    }
+
+    public function __toString()
+    {
+        return "id[" . $this->id . "], " . "systemId[" . $this->systemId . "] " . "title[" . $this->title. "] ";
     }
 }
 

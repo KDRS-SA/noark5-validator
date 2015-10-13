@@ -39,16 +39,7 @@ class TestProperty {
 	}
 
 	public function getDescription() {
-	    $description = 'Test description (' . $this->testDescription . ') ';
-	    if ($this->testResult == 1) {
-	        $description .= 'Test result (true) ';
-	    }
-	    else {
-	        $description .= 'Test result (false) ';
-	    }
-	    $description .= 'Test result description (' . $this->testResultDescription . ')';
-
-	    return $description;
+	    return $this->testDescription;
 	}
 
 	public function __toString() {
@@ -60,6 +51,10 @@ class TestProperty {
         return $this->testResult;
     }
 
+    public function setTestResult($testResult)
+    {
+        $this->testResult = $testResult;
+    }
 }
 
 ?>

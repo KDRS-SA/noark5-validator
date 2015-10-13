@@ -1,4 +1,5 @@
 <?php
+
 use Doctrine\Common\Collections\ArrayCollection;
 require_once ('models/noark5/v31/DocumentDescription.php');
 require_once ('models/noark5/v31/BasicRecord.php');
@@ -95,6 +96,17 @@ class Author
     public function setReferenceBasicRecord($referenceBasicRecord)
     {
         $this->referenceBasicRecord = $referenceBasicRecord;
+        return $this;
+    }
+
+    public function getReferenceDocumentDescription()
+    {
+        return $this->referenceDocumentDescription;
+    }
+
+    public function setReferenceDocumentDescription($referenceDocumentDescription)
+    {
+        $this->referenceDocumentDescription = $referenceDocumentDescription;
         return $this;
     }
 

@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<p:info pakkeID="2013-10-16_15-07-22_test arkivskaper"
+	xmlns:p="www.arkivverket.no/standarder/info"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xsi:schemaLocation="www.arkivverket.no/standarder/info info.xsd ">
+
+        <arkivskaperInfo>
+                <avleverendeMyndighet navn="test avleverendeMyndighetNavn" />
+                <kontaktperson navn="test kontaktpersonNavn" />
+                <arkivskaper navn="test arkivskaper" />
+        </arkivskaperInfo>
+
+        <uttrekk>
+                <uttrekksdato>2013-11-22</uttrekksdato>
+                <uttrekksmetode>
+                        <metode>annet</metode>
+                </uttrekksmetode>
+                <produsentInfo>
+                        <produsent navn="test produsentNavn" />
+                </produsentInfo>
+        </uttrekk>
+
+        <system systemType="Noark 5" versjon="1.0">
+                <systemNavn>Documaster - DOTS</systemNavn>
+                <versjon>0.1</versjon>
+        </system>
+
+        <sjekksummer>
+                <filnavn>arkivuttrekk.xml</filnavn>
+                <sjekksum>ecddae0323ca55823742f3bf67f32b42a0af98fef9e0e0a4f0aa5c24adaa2909</sjekksum>
+                <algoritme>SHA256</algoritme>
+        </sjekksummer>
+
+        <integritetsInfo>
+
+                <kommentar></kommentar>
+        </integritetsInfo>
+
+        <kommentar>test kommentar</kommentar>
+
+</p:info>
+

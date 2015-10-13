@@ -1,4 +1,5 @@
 <?php
+
 require_once 'XMLTest.php';
 require_once 'utils/Constants.php';
 require_once 'testProperties/XMLValidationTestProperty.php';
@@ -7,7 +8,6 @@ require_once 'testProperties/XMLValidationTestProperty.php';
  * This class can be used to validate en XML file
  * against an XSD. Later should include ability for
  * DTD.
- *
  *
  */
 
@@ -45,8 +45,8 @@ class XMLTestValidation extends XMLTest {
 		$xml = XMLReader::open(join(DIRECTORY_SEPARATOR, array($this->directory, $this->fileName)));
 		$xml->setSchema(join(DIRECTORY_SEPARATOR, array($this->directory, $this->xsdFilename)));
 
-		print 'XML file to test validity is ' . $this->fileName;
-		print 'using XSD file ' . $this->xsdFilename .  PHP_EOL;
+		$this->logger->trace(__METHOD__);
+		$this->logger->info('  XML file to test validity is ' . $this->fileName . 'using XSD file ' . $this->xsdFilename);
 
 		// You have to parse the XML-file if you want it to be validated
 		$currentReadCount = 1;
@@ -57,37 +57,28 @@ class XMLTestValidation extends XMLTest {
 			// We could allow it to collect a few messages, but I think it's best
 			// to do a manual check once we have discovered the file is not
 			// correct. Speed is really what we want here!
-
-			// Maybe to a test of file size in advance. Anything over say 50MB will do a check every
-			// 1000 reads
-
-			if ($currentReadCount++ % Constants::XML_PROCESSESING_CHECK_ERROR_COUNT == 0)
+			if ($currentReadCount++ % Constants::XML_PROCESSESING_CHECK_ERROR_COUNT == 0) {
 				if (count(libxml_get_errors ()) > 0) {
 					$validationFailed = true;
 				}
-			;
+			}
 		}
 
 		if (count(libxml_get_errors()) == 0) {
 
 			$this->testProperty->addTestResult(true);
-			$this->testProperty->addTestResultDescription('Validation of ' . $this->fileName  .
-															' against ' . $this->xsdFilename . ' succeeded' );
+			$this->logger->info(' RESULT Validation of ['. $this->fileName . '] against [' . $this->xsdFilename . '] succeeded');
+			$this->testProperty->addTestResultDescription('Validation of ['. $this->fileName . '] against [' . $this->xsdFilename . '] succeeded');
 			$this->testProperty->addTestResultReportDescription('Filen ' . $this->fileName . ' validerer mot filen' . $this->xsdFilename);
 		} else {
 
 			$this->testProperty->addTestResult(false);
-			$this->testProperty->addTestResultDescription('Validation of ' . $this->fileName  .
-															' against ' . $this->xsdFilename . ' failed' );
+			$this->logger->error(' RESULT Validation of ['. $this->fileName . '] against [' . $this->xsdFilename . '] failed' );
+			$this->testProperty->addTestResultDescription('Validation of ['. $this->fileName . '] against [' . $this->xsdFilename . '] failed' );
 			$this->testProperty->addTestResultReportDescription('Filen ' . $this->fileName . ' validerer ikke mot filen' . $this->xsdFilename);
-			// get all the error numbers
-			//		        $errorInformation[] = new WellFormedErrorInformation(
-	//	        						xml_error_string(xml_get_error_code($xml_parser)),
-		//        						xml_get_current_line_number($xml_parser));
-
 		}
+		libxml_clear_errors();
 	}
-
 }
 
 ?>

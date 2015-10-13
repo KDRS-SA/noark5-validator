@@ -1,0 +1,7 @@
+CHANGELOG.txt
+
+Noark 5 Validator
+
+### ver 0.3.0 2015-10-13 restructured, Thomas Sødring ###
+
+### ver 0.2.0 2015-06-02 Thomas Sødring ###

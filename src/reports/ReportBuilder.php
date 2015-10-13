@@ -1,6 +1,5 @@
 <?php
 
-require_once 'models/noark5/v31/ArkivUttrekkFile.php';
 require_once 'PHPWord-0.12.0/src/PhpWord/PhpWord.php';
 require_once 'PHPWord-0.12.0/src/PhpWord/Style/Cell.php';
 require_once 'PHPWord-0.12.0/src/PhpWord/Autoloader.php';
@@ -37,9 +36,6 @@ class ReportBuilder {
     }
 
     public function createDocument() {
-
-        // New Word Document
-        echo date('H:i:s') , ' Create new PhpWord object' , PHP_EOL;
 
         $this->phpWord->addFontStyle('rStyle', array('bold' => true, 'italic' => true, 'size' => 16, 'allCaps' => true, 'doubleStrikethrough' => true));
         $this->phpWord->addParagraphStyle('pStyle', array('align' => 'center', 'spaceAfter' => 100));

@@ -1,9 +1,11 @@
 <?php
+
 use Doctrine\Common\Collections\ArrayCollection;
 require_once ('models/noark5/v31/Series.php');
 require_once ('models/noark5/v31/StorageLocation.php');
 require_once ('models/noark5/v31/FondsCreator.php');
 require_once ('utils/Constants.php');
+
 /**
  * @Entity @Table(name="fonds")
  **/
