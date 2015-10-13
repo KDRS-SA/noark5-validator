@@ -1,0 +1,33 @@
+noark5_validate_import_parameters.txt
+
+Copy Noark 5 validator to Winowds main folder C:\noark5-validator.
+
+Noark 5 testset 1 - validate:
+php main.php -dc:\noark5-validator\src\resources\test-uttrekk\uttrekk1\n5uttrekk -tnoark5 -v31 -ic:\noark5-validator\src\resources\test-uttrekk\uttrekk1\info.xml > 01_n5validate.log
+
+Noark 5 testset 2 - validate:
+php main.php -dc:\noark5-validator\src\resources\test-uttrekk\uttrekk2\n5uttrekk -tnoark5 -v31 -ic:\noark5-validator\src\resources\test-uttrekk\uttrekk2\info.xml > 02_n5validate.log
+
+Noark 5 testset 1 - import:
+php importExtraction.php -dc:\noark5-validator\src\resources\test-uttrekk\uttrekk1\n5uttrekk -t=noark5 -v=31 -s=y -ic:\noark5-validator\src\resources\test-uttrekk\uttrekk1\info.xml > 01_n5import.log
+
+Noark 5 testset 2 - import:
+php importExtraction.php -dc:\noark5-validator\src\resources\test-uttrekk\uttrekk2\n5uttrekk -t=noark5 -v=31 -s=y -ic:\noark5-validator\src\resources\test-uttrekk\uttrekk1\info.xml > 02_n5import.log
+k/uttrekk1/info.xml
+
+### validate parameters ###
+Validate-parametre til php main.php
+-d=<katalog med uttrekk>		| eks. = c:\uttrekk\noark5  (for windows)
+-t=<type uttrekk>				| =noark5
+-v=<versjon av typen uttrekk>	| =31
+-s=<?>							| =y slett database innhold
+-i=<plassering av info.xml>		| eks. = c:\uttrekk\info.xml   (for windows)
+
+### import parameters ###
+
+Import-parametre til php importExtraction.php
+-d=<katalog med uttrekk>		| eks. = c:\uttrekk\noark5  (for windows)
+-t=<type uttrekk>				| =noark5
+-v=<versjon av typen uttrekk>	| =31
+-s=<?>							| =y slett database innhold
+-i=<plassering av info.xml>		| eks. = c:\uttrekk\info.xml   (for windows)

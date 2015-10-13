@@ -2,6 +2,14 @@ CHANGELOG.txt
 
 Noark 5 Validator
 
+### ver 0.3.1 2015-10-13 import.bat & validate.bat, Torbjørn Aasen ###
+\src
+Added 4 windows batch-files (.bat) for running Noark 5 validate and import with parameters for test.
+
+\doc
+Added new folder for documents describing Noark 5 validator.
+Added noark5_validate_import_parameters.txt
+
 ### ver 0.3.0 2015-10-13 restructured, Thomas Sødring ###
 
 ### ver 0.2.0 2015-06-02 Thomas Sødring ###
